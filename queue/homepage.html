@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UNTRASHIFY Operations Command Center</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13eca4",
+                        "primary-dark": "#0a8a61",
+                        "danger": "#ff3b3b",
+                        "warning": "#ff9a00",
+                        "background-light": "#f6f8f7", // Required by system but overridden for military theme
+                        "background-dark": "#0a0e14", // Main dark bg
+                        "panel-dark": "#10161f",
+                        "border-dark": "#1e2a3a",
+                        "text-dim": "#8b9bb4",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px", // Sharp corners requested
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px",
+                    },
+                },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0e14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e2a3a;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #13eca4;
+        }
+        .radar-sweep {
+            position: relative;
+            overflow: hidden;
+            border-radius: 50%;
+        }
+        .radar-sweep::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 0deg, rgba(19, 236, 164, 0.2) 300deg, rgba(19, 236, 164, 0.8) 360deg);
+            animation: radar-spin 2s linear infinite;
+        }
+        @keyframes radar-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }.scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-mono h-screen flex flex-col overflow-hidden selection:bg-primary selection:text-black">
+<header class="h-14 shrink-0 flex items-center justify-between border-b border-border-dark bg-[#0d1117] px-6 z-20">
+<div class="flex items-center gap-4 text-primary">
+<span class="material-symbols-outlined text-[28px]">radar</span>
+<h1 class="text-white text-lg font-bold tracking-widest">UNTRASHIFY <span class="text-text-dim text-sm font-normal">v2.4</span></h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-wider">
+<span class="material-symbols-outlined text-[16px] animate-pulse">fiber_manual_record</span>
+                LIVE FEED
+            </div>
+<div class="flex items-center">
+<div class="bg-danger text-black px-4 py-1 text-sm font-bold tracking-widest clip-path-slant flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">warning</span>
+                    HAZARD LVL 3
+                </div>
+</div>
+<div class="w-px h-6 bg-border-dark"></div>
+<div class="flex items-center gap-3">
+<button class="text-text-dim hover:text-white transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="text-text-dim hover:text-white transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<div class="h-10 shrink-0 flex items-center justify-between px-6 bg-panel-dark border-b border-border-dark">
+<div class="flex items-center gap-2 text-primary/80 text-xs font-medium tracking-widest">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+            E-WASTE DETECTION SYSTEM // ACTIVE
+        </div>
+<div class="text-text-dim text-xs font-mono tracking-wider">
+            UTC 14:02:45
+        </div>
+</div>
+<main class="flex-1 flex overflow-hidden">
+<aside class="w-72 shrink-0 border-r border-border-dark bg-background-dark flex flex-col overflow-y-auto">
+<div class="p-4 border-b border-border-dark">
+<h3 class="text-text-dim text-xs font-bold tracking-widest mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">filter_list</span>
+                    DETECTION SCOPE
+                </h3>
+<div class="grid grid-cols-3 gap-2 mb-6">
+<button class="bg-primary/20 text-primary border border-primary/40 text-xs py-1 hover:bg-primary hover:text-black transition-all">1H</button>
+<button class="bg-panel-dark text-text-dim border border-border-dark text-xs py-1 hover:border-primary/50 hover:text-white transition-all">6H</button>
+<button class="bg-panel-dark text-text-dim border border-border-dark text-xs py-1 hover:border-primary/50 hover:text-white transition-all">24H</button>
+<button class="bg-panel-dark text-text-dim border border-border-dark text-xs py-1 hover:border-primary/50 hover:text-white transition-all">48H</button>
+<button class="bg-panel-dark text-text-dim border border-border-dark text-xs py-1 hover:border-primary/50 hover:text-white transition-all">7D</button>
+<button class="bg-panel-dark text-text-dim border border-border-dark text-xs py-1 hover:border-primary/50 hover:text-white transition-all">ALL</button>
+</div>
+<div class="space-y-3">
+<label class="flex items-center justify-between group cursor-pointer p-2 bg-panel-dark border border-border-dark hover:border-danger/50">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-danger animate-pulse"></span>
+<span class="text-xs font-bold text-slate-200 group-hover:text-danger">HAZARDOUS</span>
+</div>
+<input checked="" class="bg-transparent border-slate-600 text-danger focus:ring-0 rounded-none w-4 h-4" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between group cursor-pointer p-2 bg-panel-dark border border-border-dark hover:border-primary/50">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-xs font-bold text-slate-200 group-hover:text-primary">APPLIANCES</span>
+</div>
+<input checked="" class="bg-transparent border-slate-600 text-primary focus:ring-0 rounded-none w-4 h-4" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between group cursor-pointer p-2 bg-panel-dark border border-border-dark hover:border-warning/50">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-warning"></span>
+<span class="text-xs font-bold text-slate-200 group-hover:text-warning">ELECTRONICS</span>
+</div>
+<input checked="" class="bg-transparent border-slate-600 text-warning focus:ring-0 rounded-none w-4 h-4" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between group cursor-pointer p-2 bg-panel-dark border border-border-dark hover:border-purple-500/50">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-purple-500"></span>
+<span class="text-xs font-bold text-slate-200 group-hover:text-purple-500">MEDICAL</span>
+</div>
+<input class="bg-transparent border-slate-600 text-purple-500 focus:ring-0 rounded-none w-4 h-4" type="checkbox"/>
+</label>
+</div>
+</div>
+<div class="p-4 flex-1">
+<h3 class="text-text-dim text-xs font-bold tracking-widest mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">analytics</span>
+                    THROUGHPUT
+                </h3>
+<div class="grid grid-cols-1 gap-3">
+<div class="bg-panel-dark border border-border-dark p-3 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-1 opacity-20">
+<span class="material-symbols-outlined">conveyor_belt</span>
+</div>
+<p class="text-[10px] text-text-dim uppercase">Items Processed</p>
+<p class="text-2xl font-bold text-white mt-1">1,248</p>
+<div class="w-full bg-slate-800 h-1 mt-2">
+<div class="bg-primary h-1 w-[75%]"></div>
+</div>
+</div>
+<div class="bg-panel-dark border border-border-dark p-3 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-1 opacity-20">
+<span class="material-symbols-outlined">recycling</span>
+</div>
+<p class="text-[10px] text-text-dim uppercase">Recycled Mass</p>
+<p class="text-2xl font-bold text-white mt-1">842 <span class="text-sm text-text-dim">KG</span></p>
+<div class="w-full bg-slate-800 h-1 mt-2">
+<div class="bg-blue-500 h-1 w-[60%]"></div>
+</div>
+</div>
+</div>
+<div class="mt-6 border-t border-border-dark pt-4">
+<p class="text-[10px] text-text-dim uppercase mb-2">System Load</p>
+<div class="flex gap-1 h-8 items-end">
+<div class="flex-1 bg-primary/20 h-[40%]"></div>
+<div class="flex-1 bg-primary/20 h-[60%]"></div>
+<div class="flex-1 bg-primary/20 h-[30%]"></div>
+<div class="flex-1 bg-primary/20 h-[80%]"></div>
+<div class="flex-1 bg-primary/40 h-[90%]"></div>
+<div class="flex-1 bg-primary/20 h-[50%]"></div>
+<div class="flex-1 bg-primary/20 h-[45%]"></div>
+<div class="flex-1 bg-primary/60 h-[70%]"></div>
+</div>
+</div>
+</div>
+</aside>
+<section class="flex-1 flex flex-col min-w-0 bg-[#06090c]">
+<div class="h-[60%] border-b border-border-dark p-4 flex flex-col">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-primary text-sm font-bold tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] animate-pulse">videocam</span>
+                        CONVEYOR FEED 01 - RAW
+                    </h3>
+<div class="flex gap-2">
+<span class="text-[10px] bg-black/50 px-2 py-0.5 text-text-dim border border-border-dark">CAM-A</span>
+<span class="text-[10px] bg-black/50 px-2 py-0.5 text-text-dim border border-border-dark">1080P</span>
+<span class="text-[10px] bg-black/50 px-2 py-0.5 text-text-dim border border-border-dark">60FPS</span>
+</div>
+</div>
+<div class="relative flex-1 bg-black border border-border-dark overflow-hidden group">
+<img alt="Overhead view of conveyor belt with electronic waste" class="absolute inset-0 w-full h-full object-cover opacity-60" data-alt="Dark industrial conveyor belt with various electronic components" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU68a7_aiPb5ZwH0TirKuOtq79oD6LNFCljp0m2NOeI7M50QJ865xJwxtcEeWTytnMPY28CRyUyU_cVUl2JCTu5NzwdF7n8T7TqxjF-PkRHdGbHaL6L2KQfj4tdGEWSGLgqKwGhxMW3vqQmFeT8DF2Uzn_jkj1bMSbt7CNS5nixY2S5-uB_YkWtNWgUwSFd20S3-EZ2HBl3xlSQ716YQbhdokUH6WuJpEfxoD5z6DkN1VAxbRPsoRHI8R3YV9ALz59uj6zuKW8miD2"/>
+<div class="absolute inset-0 scanlines opacity-30 z-10"></div>
+<div class="absolute top-4 left-4 z-20 font-mono text-[10px] text-primary/80">
+<p>X: 124.45 Y: 89.22</p>
+<p>ZOOM: 1.2x</p>
+<p>ISO: 800</p>
+</div>
+<div class="absolute top-[30%] left-[20%] w-[120px] h-[80px] border-2 border-danger z-20">
+<div class="absolute -top-6 left-0 bg-danger text-black text-[10px] font-bold px-1">
+                            Li-ION BATTERY (98%)
+                        </div>
+<div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-danger -mt-1 -mr-1"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-danger -mb-1 -ml-1"></div>
+</div>
+<div class="absolute top-[60%] left-[45%] w-[180px] h-[140px] border-2 border-danger z-20">
+<div class="absolute -top-6 left-0 bg-danger text-black text-[10px] font-bold px-1">
+                            CRT MONITOR (92%)
+                        </div>
+</div>
+<div class="absolute top-[20%] right-[30%] w-[90px] h-[120px] border-2 border-primary z-20 border-dashed">
+<div class="absolute -top-6 left-0 bg-primary text-black text-[10px] font-bold px-1">
+                            CALCULATOR (87%)
+                        </div>
+</div>
+<div class="absolute bottom-[20%] right-[15%] w-[100px] h-[100px] border-2 border-warning z-20 border-dotted">
+<div class="absolute -top-6 left-0 bg-warning text-black text-[10px] font-bold px-1">
+                           HEADPHONE (45%)
+                       </div>
+</div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 border border-white/20 z-10 flex items-center justify-center">
+<div class="w-1 h-1 bg-white/50"></div>
+</div>
+</div>
+<div class="mt-2 h-10 bg-danger/10 border border-danger/40 flex items-center justify-center gap-3 animate-pulse">
+<span class="material-symbols-outlined text-danger">gpp_maybe</span>
+<span class="text-danger font-bold tracking-[0.2em] text-sm">SAFETY INTERLOCK — 2 HAZARDOUS ITEMS DETECTED</span>
+<span class="material-symbols-outlined text-danger">gpp_maybe</span>
+</div>
+</div>
+<div class="flex-1 flex overflow-hidden">
+<div class="w-1/2 border-r border-border-dark flex flex-col">
+<div class="h-8 border-b border-border-dark flex items-center px-4 bg-panel-dark justify-between">
+<span class="text-[10px] text-text-dim font-bold tracking-widest">LIVE LOG</span>
+<span class="text-[10px] text-primary cursor-pointer hover:underline">VIEW ALL</span>
+</div>
+<div class="flex-1 overflow-y-auto bg-background-dark p-0">
+<table class="w-full text-left text-xs border-collapse">
+<thead class="sticky top-0 bg-panel-dark text-text-dim text-[10px] uppercase font-medium z-10">
+<tr>
+<th class="px-4 py-2 border-b border-border-dark">ID</th>
+<th class="px-4 py-2 border-b border-border-dark">Time</th>
+<th class="px-4 py-2 border-b border-border-dark">Class</th>
+<th class="px-4 py-2 border-b border-border-dark">Conf</th>
+<th class="px-4 py-2 border-b border-border-dark">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark font-mono">
+<tr class="hover:bg-white/5 group">
+<td class="px-4 py-2 text-text-dim">#8X29</td>
+<td class="px-4 py-2 text-white">14:02:44</td>
+<td class="px-4 py-2 text-danger font-bold">Li-Ion Bat</td>
+<td class="px-4 py-2 text-text-dim">98%</td>
+<td class="px-4 py-2"><span class="bg-danger/20 text-danger px-1">FLAGGED</span></td>
+</tr>
+<tr class="hover:bg-white/5 group">
+<td class="px-4 py-2 text-text-dim">#8X28</td>
+<td class="px-4 py-2 text-white">14:02:41</td>
+<td class="px-4 py-2 text-danger font-bold">CRT Monitor</td>
+<td class="px-4 py-2 text-text-dim">92%</td>
+<td class="px-4 py-2"><span class="bg-danger/20 text-danger px-1">FLAGGED</span></td>
+</tr>
+<tr class="hover:bg-white/5 group">
+<td class="px-4 py-2 text-text-dim">#8X27</td>
+<td class="px-4 py-2 text-white">14:02:35</td>
+<td class="px-4 py-2 text-primary font-bold">Calculator</td>
+<td class="px-4 py-2 text-text-dim">87%</td>
+<td class="px-4 py-2"><span class="bg-primary/20 text-primary px-1">CLEARED</span></td>
+</tr>
+<tr class="hover:bg-white/5 group">
+<td class="px-4 py-2 text-text-dim">#8X26</td>
+<td class="px-4 py-2 text-white">14:02:30</td>
+<td class="px-4 py-2 text-warning font-bold">Phone PCB</td>
+<td class="px-4 py-2 text-text-dim">64%</td>
+<td class="px-4 py-2"><span class="bg-warning/20 text-warning px-1">REVIEW</span></td>
+</tr>
+<tr class="hover:bg-white/5 group">
+<td class="px-4 py-2 text-text-dim">#8X25</td>
+<td class="px-4 py-2 text-white">14:02:18</td>
+<td class="px-4 py-2 text-primary font-bold">Plastic</td>
+<td class="px-4 py-2 text-text-dim">99%</td>
+<td class="px-4 py-2"><span class="bg-primary/20 text-primary px-1">CLEARED</span></td>
+</tr>
+<tr class="hover:bg-white/5 group">
+<td class="px-4 py-2 text-text-dim">#8X24</td>
+<td class="px-4 py-2 text-white">14:02:12</td>
+<td class="px-4 py-2 text-primary font-bold">Toaster</td>
+<td class="px-4 py-2 text-text-dim">91%</td>
+<td class="px-4 py-2"><span class="bg-primary/20 text-primary px-1">CLEARED</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="w-1/2 flex flex-col bg-background-dark">
+<div class="h-8 border-b border-border-dark flex items-center px-4 bg-panel-dark justify-between">
+<span class="text-[10px] text-text-dim font-bold tracking-widest">RECENT CAPTURES</span>
+<div class="flex gap-2">
+<span class="w-2 h-2 bg-white/20"></span>
+<span class="w-2 h-2 bg-white/50"></span>
+</div>
+</div>
+<div class="p-4 grid grid-cols-3 gap-3 overflow-y-auto">
+<div class="aspect-square bg-black border border-danger relative group cursor-pointer hover:border-white transition-colors">
+<img alt="Battery close up" class="w-full h-full object-cover opacity-80" data-alt="Close up of lithium battery" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcLsCVQ39OD-B_WfL_0vqKg7urq5ZunK2vCOiDTwvr5Fv6EWDIHd8RTAbYdJoOO6YoGbYiXsyZhdErKgn0mtI2mL6z6qa0vFITHenn8ztzd88sU5NCNExCifRu9O1nqZvQ-R6pwAv67C_rS0BtAuXEFXJqW5AyMdkcq0oTe9CDO7vrvkIJtfxNkld8qmZ9aNlsdfj8tQlvcMDSs7aCi1HfohUgm2q6lsT3rg5sS3YCE3-PuDFjSiui5x274UvLBHBNGkpiFYRMgP9X"/>
+<div class="absolute inset-0 bg-danger/10"></div>
+<div class="absolute bottom-0 left-0 right-0 bg-black/80 px-2 py-1 text-[9px] text-danger font-bold flex justify-between">
+<span>BATTERY</span>
+<span>14:02:44</span>
+</div>
+</div>
+<div class="aspect-square bg-black border border-danger relative group cursor-pointer hover:border-white transition-colors">
+<img alt="Old monitor screen" class="w-full h-full object-cover opacity-80" data-alt="Shattered old monitor screen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDw8--ZIpuvkwvnJupSFTVHqYtmWaUGwh1HYTxcYj44ywfn_R9sm2auhx9yb-nO2VK6IIP0YQJK0zrgTyox_PHIq33NSI7XaVrS9WaRFllfOOkzuQ5zOGnJRdZtKgIZnfQYsDZGGcX0HeJF-7P2CinYZ6kk4DY0nDk2EOtTCs06vEumhu5MaqDzhiqoGvXfKkmLyFNAv-A6cFzr_pCM6gMhOB-sxod-CeeFHk9FDL8qRaljQLhpjGbF1MvUDDd94D4FEjRjLRempTmH"/>
+<div class="absolute inset-0 bg-danger/10"></div>
+<div class="absolute bottom-0 left-0 right-0 bg-black/80 px-2 py-1 text-[9px] text-danger font-bold flex justify-between">
+<span>CRT</span>
+<span>14:02:41</span>
+</div>
+</div>
+<div class="aspect-square bg-black border border-primary relative group cursor-pointer hover:border-white transition-colors">
+<img alt="Calculator" class="w-full h-full object-cover opacity-80" data-alt="Old plastic calculator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgvSz5HgJHHbyfau3jvPF07Xgzl8KEFmHMUS6hoqQ8sAV4vrTc0a5SDgDO33wB9VmkRuDUu7bRanynC882TONPLcoirlOKs0Zi_H2nes3L6zjDhpJTx2iJdJ5xe_F8o4jsCJF6jq5fZeeZhDdGIL-BKZAb6zkH1qz1qN8d64zJI12EIwJ0Zyg7CDWLcax1fHe77645uTgzt2Eje_DSKf6862x2dVWI7z_NgmQqGDQHDZvLmKWuTrbxuQ5-xrbTct1uBK6-euigxnJI"/>
+<div class="absolute bottom-0 left-0 right-0 bg-black/80 px-2 py-1 text-[9px] text-primary font-bold flex justify-between">
+<span>CALC</span>
+<span>14:02:35</span>
+</div>
+</div>
+<div class="aspect-square bg-black border border-warning relative group cursor-pointer hover:border-white transition-colors">
+<img alt="Circuit board" class="w-full h-full object-cover opacity-80" data-alt="Green electronic circuit board" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMY7APL9MDFeIZOnYi7ZSSCE_e_62gJwMIxZCLP6UDXRrGUOLYr5EnINyzrWSOURMX9K0qfj0pS_02xbUJsOubt1v4to24aXHcApalAemoNDiub_FYxg9Y9rrdWtm6FOfl53xdKhlV85roNQtJQ6T2hYcUW6Y-B79Uw-94uuf9jVkrAaoatdQuBEW_nPvhHRTMTyjOrd0O0fSYTi0LChEYSkBQdQgq6YERKomeHoO1k_9loRr7494-fWp2UwiZtSp0jYVR7F-W8IL9"/>
+<div class="absolute bottom-0 left-0 right-0 bg-black/80 px-2 py-1 text-[9px] text-warning font-bold flex justify-between">
+<span>PCB</span>
+<span>14:02:30</span>
+</div>
+</div>
+<div class="aspect-square bg-black border border-primary relative group cursor-pointer hover:border-white transition-colors">
+<img alt="Plastic waste" class="w-full h-full object-cover opacity-80" data-alt="Assorted white plastic casing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALwIb5pf710Qwo3hAL1AusadLppKsP1h8c2UFGANZOWYCbiKOy5qZDeTj3hs9_7v3u7urquAYp9ZhXcWHqmxR5bjgUWXdk_qmqcQe9AY_D7RBWvkMoROzTgjY63eAVjlCwxD3HZXyW57Y-KscdeFPUzufzDepUeYjP1GrTyKnmnaDM2ofMWpOx0mDX-tIxKbCk7AHgj8OUd1Pz2AKysVY7zGMdRWKwc-b6KgviKv7nqkCjlNo-vvlEECgBesFqx8Nxsjj_7KXDkeam"/>
+<div class="absolute bottom-0 left-0 right-0 bg-black/80 px-2 py-1 text-[9px] text-primary font-bold flex justify-between">
+<span>PLASTIC</span>
+<span>14:02:18</span>
+</div>
+</div>
+<div class="aspect-square bg-black border border-primary relative group cursor-pointer hover:border-white transition-colors">
+<div class="w-full h-full flex items-center justify-center text-text-dim text-[10px]">
+                                + 1,243 MORE
+                            </div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<aside class="w-80 shrink-0 border-l border-border-dark bg-background-dark flex flex-col">
+<div class="h-64 border-b border-border-dark flex flex-col relative bg-panel-dark/50">
+<div class="p-4 border-b border-border-dark flex justify-between items-center bg-background-dark">
+<h3 class="text-text-dim text-xs font-bold tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+                    LIVE LOGS
+                </h3>
+<span class="text-[10px] text-primary animate-pulse">● REC</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 font-mono text-[10px] space-y-2 bg-black/30">
+<div class="flex gap-2">
+<span class="text-text-dim">14:02:45</span>
+<span class="text-primary">&gt; System check complete. All sensors active.</span>
+</div>
+<div class="flex gap-2">
+<span class="text-text-dim">14:02:44</span>
+<span class="text-danger">&gt; ALERT: Hazardous item detected (Li-Ion Bat)</span>
+</div>
+<div class="flex gap-2">
+<span class="text-text-dim">14:02:44</span>
+<span class="text-white">&gt; Processing batch #8X29 confidence score 98%</span>
+</div>
+<div class="flex gap-2">
+<span class="text-text-dim">14:02:41</span>
+<span class="text-danger">&gt; ALERT: Hazardous item detected (CRT Monitor)</span>
+</div>
+<div class="flex gap-2">
+<span class="text-text-dim">14:02:38</span>
+<span class="text-text-dim">&gt; Belt speed adjusted: -15% (Safety Protocol)</span>
+</div>
+<div class="flex gap-2">
+<span class="text-text-dim">14:02:35</span>
+<span class="text-primary">&gt; Item cleared (Calculator) - Routing to bin C</span>
+</div>
+<div class="flex gap-2">
+<span class="text-text-dim">14:02:32</span>
+<span class="text-warning">&gt; Analysis pending (Phone PCB) - Low confidence</span>
+</div>
+<div class="flex gap-2">
+<span class="text-text-dim">14:02:30</span>
+<span class="text-white">&gt; Scanning sector 7 complete. No anomalies.</span>
+</div>
+</div>
+</div>
+<div class="p-4 border-b border-border-dark bg-danger/5">
+<h3 class="text-danger text-xs font-bold tracking-widest mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">security</span>
+                    HAZARD POSTURE
+                </h3>
+<div class="border border-danger/30 p-4 bg-black/40 relative overflow-hidden">
+<div class="flex justify-between items-end mb-2">
+<span class="text-4xl font-bold text-danger leading-none">CRIT</span>
+<span class="text-xs text-danger/80 mb-1">LVL 3</span>
+</div>
+<p class="text-[10px] text-danger/70 leading-relaxed uppercase">
+                        Containment protocols active. Manual override required for belt restart. 
+                    </p>
+<div class="absolute bottom-0 left-0 right-0 h-1" style="background: repeating-linear-gradient(45deg, #ff3b3b, #ff3b3b 10px, #000 10px, #000 20px);"></div>
+</div>
+<button class="w-full mt-3 bg-danger text-black text-xs font-bold py-2 hover:bg-white hover:text-black transition-colors uppercase">
+                    Initiate Lockdown
+                </button>
+</div>
+<div class="flex-1 flex flex-col p-4 overflow-hidden">
+<h3 class="text-text-dim text-xs font-bold tracking-widest mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">local_shipping</span>
+                    DISPATCH QUEUE
+                </h3>
+<div class="flex-1 overflow-y-auto space-y-2 pr-1">
+<div class="bg-panel-dark border border-border-dark p-2 flex items-center gap-3">
+<div class="w-8 h-8 bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
+<span class="material-symbols-outlined text-[16px]">inventory_2</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<span class="text-white text-xs font-bold truncate">BATCH #9921</span>
+<span class="text-primary text-[9px]">READY</span>
+</div>
+<div class="w-full bg-slate-800 h-1">
+<div class="bg-primary h-1 w-full"></div>
+</div>
+</div>
+</div>
+<div class="bg-panel-dark border border-border-dark p-2 flex items-center gap-3">
+<div class="w-8 h-8 bg-warning/10 flex items-center justify-center text-warning border border-warning/30">
+<span class="material-symbols-outlined text-[16px]">memory</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<span class="text-white text-xs font-bold truncate">BATCH #9922</span>
+<span class="text-warning text-[9px]">Sorting...</span>
+</div>
+<div class="w-full bg-slate-800 h-1">
+<div class="bg-warning h-1 w-[70%]"></div>
+</div>
+</div>
+</div>
+<div class="bg-panel-dark border border-border-dark p-2 flex items-center gap-3 opacity-60">
+<div class="w-8 h-8 bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<span class="text-white text-xs font-bold truncate">BATCH #9923</span>
+<span class="text-slate-500 text-[9px]">QUEUED</span>
+</div>
+<div class="w-full bg-slate-800 h-1">
+</div>
+</div>
+</div>
+<div class="bg-panel-dark border border-border-dark p-2 flex items-center gap-3 opacity-60">
+<div class="w-8 h-8 bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<span class="text-white text-xs font-bold truncate">BATCH #9924</span>
+<span class="text-slate-500 text-[9px]">QUEUED</span>
+</div>
+<div class="w-full bg-slate-800 h-1">
+</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+</body></html>

@@ -1,0 +1,100 @@
+# =============================================================================
+# Untrashify - E-Waste Detection System
+# =============================================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# --- Node / Frontend ---
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.npm
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Vite
+frontend/.vite/
+
+# --- Environment & Secrets ---
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# --- Model Artifacts & Data (large files) ---
+ewaste_model/dataset/
+ewaste_model/checkpoints/
+training/Yet-Another-EfficientDet-Pytorch/datasets/
+ewaste_model/logs/
+ewaste_model/*.onnx
+*.pth
+triton_model_repo/
+
+# --- Temp & Build Artifacts ---
+temp/
+tmp/
+*.tmp
+*.temp
+
+# --- IDE & Editor ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.cursor/
+
+# --- OS ---
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+
+# --- Playwright (e2e tests) ---
+playwright-report/
+test-results/
+playwright/.cache/
+blob-report/
+
+# --- Project-specific ---
+DOCKER_GUIDE.md
+run_app.bat
+test_pipeline.py

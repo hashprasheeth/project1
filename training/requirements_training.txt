@@ -1,0 +1,25 @@
+# EfficientDet-D5 Training Dependencies
+# Install with: pip install -r requirements_training.txt
+
+# Core ML
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Dataset
+roboflow>=1.1.0
+pycocotools>=2.0.6
+
+# Model export
+onnx>=1.14.0
+onnxruntime>=1.16.0  # use onnxruntime-gpu for NVIDIA GPUs
+
+# Image processing
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# Utilities
+pyyaml>=6.0
+tqdm>=4.65.0
+matplotlib>=3.7.0
+numpy>=1.24.0
+webcolors>=1.13

@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+torch
+torchvision
+numpy
+opencv-python-headless
+python-multipart
+pydantic-settings
+python-json-logger
+slowapi

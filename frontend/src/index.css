@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-background-dark text-slate-100 font-mono antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0a0e14;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1e2a3a;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #13eca4;
+  }
+}
+
+@layer components {
+  .scanlines {
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0) 50%,
+      rgba(0, 0, 0, 0.2) 50%,
+      rgba(0, 0, 0, 0.2)
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+  }
+
+  .hazard-stripes {
+    background: repeating-linear-gradient(
+      45deg,
+      #ef4444,
+      #ef4444 10px,
+      #000 10px,
+      #000 20px
+    );
+  }
+
+  .clip-path-slant {
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+  }
+
+  .section-label {
+    @apply text-text-dim text-xs font-bold tracking-widest uppercase flex items-center gap-2;
+  }
+
+  .panel-header {
+    @apply h-8 border-b border-border-dark flex items-center px-4 bg-panel-dark justify-between;
+  }
+
+  .metric-label {
+    @apply text-slate-400 text-xs font-mono uppercase tracking-widest;
+  }
+
+  .metric-value {
+    @apply text-white text-2xl font-mono font-bold;
+  }
+}
+
+@layer utilities {
+  .glitch-text {
+    position: relative;
+  }
+  .glitch-text::before,
+  .glitch-text::after {
+    content: '404';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .glitch-text::before {
+    color: #13eca4;
+    left: -2px;
+    text-shadow: 2px 0 #ef4444;
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch 3s infinite linear alternate-reverse;
+  }
+  .glitch-text::after {
+    color: #ef4444;
+    left: 2px;
+    text-shadow: -2px 0 #13eca4;
+    clip: rect(10px, 450px, 30px, 0);
+    animation: glitch 2s infinite linear alternate-reverse;
+  }
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes scroll-logs {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}

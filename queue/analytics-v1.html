@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Detection Intelligence Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#13eca4",
+              "primary-dark": "#0fa876",
+              "background-light": "#f6f8f7",
+              "background-dark": "#0a0e14", 
+              "surface-dark": "#111816",
+              "border-dark": "#283933",
+              "accent-red": "#fa5838",
+              "accent-green": "#0bda49",
+            },
+            fontFamily: {
+              "display": ["Space Grotesk", "monospace"],
+              "body": ["Noto Sans", "sans-serif"],
+              "mono": ["Space Grotesk", "monospace"], // Enforcing mono-style look
+            },
+            borderRadius: {
+              "DEFAULT": "0px",
+              "lg": "0px",
+              "xl": "0px",
+              "full": "9999px", // Keep full for circles only
+            },
+          },
+        },
+      }
+    </script>
+<style>
+        /* Custom scrollbar for dense data tables */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111816; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #283933; 
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #13eca4; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display overflow-x-hidden min-h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark bg-surface-dark px-6 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-4 text-white">
+<div class="size-6 text-primary">
+<span class="material-symbols-outlined">recycling</span>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-wider uppercase">UNTRASHIFY <span class="text-primary text-xs font-normal opacity-70">/// SYSTEM.V2</span></h2>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="hidden md:flex items-center gap-1">
+<a class="text-slate-400 hover:text-white hover:bg-white/5 px-4 py-2 text-sm font-medium transition-colors uppercase tracking-widest" href="#">Dashboard</a>
+<a class="text-primary bg-primary/10 border-b-2 border-primary px-4 py-2 text-sm font-bold uppercase tracking-widest" href="#">Analytics</a>
+<a class="text-slate-400 hover:text-white hover:bg-white/5 px-4 py-2 text-sm font-medium transition-colors uppercase tracking-widest" href="#">Inventory</a>
+<a class="text-slate-400 hover:text-white hover:bg-white/5 px-4 py-2 text-sm font-medium transition-colors uppercase tracking-widest" href="#">Alerts</a>
+<a class="text-slate-400 hover:text-white hover:bg-white/5 px-4 py-2 text-sm font-medium transition-colors uppercase tracking-widest" href="#">Settings</a>
+</nav>
+<div class="flex items-center gap-4 border-l border-border-dark pl-6">
+<button class="size-8 flex items-center justify-center text-slate-400 hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 size-2 bg-accent-red rounded-full"></span>
+</button>
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-9 border border-border-dark" data-alt="User profile picture of an operator" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAnw4EeaSbCApOXrzBMTq6-eHC0ajp8qWu1nZL6V65TY-C5C2URoO_N1vptCMLRdplf4TvMQHVdIgSzCqQDqCN8CStmlqYa938W68QVdqDZ3gC2JunQBfZqbbSqQ6EBTgT3ra62yurrPEyD-2KuCdRFMS2M0RwA_T7bGif94z6sUnIR2GoQ1eZyU9UlfCQt5mIOecO9h3gTcET3f-4b4MfNef56MHaPyEjt1hWLehZ1wX9nisW8wRbBvAOXqnnSMEx6c9_T-9f0IgJd");'></div>
+</div>
+</div>
+</header>
+<main class="flex-1 w-full max-w-[1440px] mx-auto p-4 md:p-6 lg:p-8 flex flex-col gap-6">
+<!-- Header Section -->
+<div class="flex flex-wrap justify-between items-end gap-4 border-b border-border-dark pb-6">
+<div class="flex min-w-72 flex-col gap-2">
+<div class="flex items-center gap-2 text-primary/60 text-xs font-mono uppercase tracking-widest">
+<span class="material-symbols-outlined text-[16px]">radar</span>
+<span>System Status: Online</span>
+<span>//</span>
+<span>Latency: 12ms</span>
+</div>
+<h1 class="text-white tracking-tight text-3xl md:text-4xl font-bold uppercase">Detection Analytics</h1>
+<p class="text-slate-400 text-sm font-mono uppercase tracking-wider">Real-time e-waste hazard monitoring &amp; classification</p>
+</div>
+<button class="flex items-center gap-2 h-10 px-6 bg-surface-dark border border-primary/30 hover:bg-primary hover:text-background-dark text-primary text-sm font-bold uppercase tracking-widest transition-all group">
+<span class="material-symbols-outlined group-hover:rotate-180 transition-transform">refresh</span>
+<span>Reset Stats</span>
+</button>
+</div>
+<!-- Main Grid Layout -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+<!-- LEFT COLUMN (Metrics & Charts) -->
+<div class="xl:col-span-8 flex flex-col gap-6">
+<!-- SITUATION OVERVIEW -->
+<section>
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-white text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+<span class="w-1 h-4 bg-primary"></span>
+                            Situation Overview
+                        </h3>
+<span class="text-xs font-mono text-slate-500">LAST UPDATED: 10:42:05</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Metric Card 1 -->
+<div class="bg-surface-dark border border-border-dark p-5 relative overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-4xl">videocam</span>
+</div>
+<p class="text-slate-400 text-xs font-mono uppercase tracking-widest mb-1">Total Frames</p>
+<p class="text-white text-2xl font-mono font-bold">2,845,192</p>
+<div class="flex items-center gap-1 text-accent-green text-xs mt-2 font-mono">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span>+12% vs avg</span>
+</div>
+</div>
+<!-- Metric Card 2 -->
+<div class="bg-surface-dark border border-border-dark p-5 relative overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-4xl">center_focus_weak</span>
+</div>
+<p class="text-slate-400 text-xs font-mono uppercase tracking-widest mb-1">Detections</p>
+<p class="text-white text-2xl font-mono font-bold">14,230</p>
+<div class="flex items-center gap-1 text-accent-red text-xs mt-2 font-mono">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+<span>-2% drop</span>
+</div>
+</div>
+<!-- Metric Card 3 -->
+<div class="bg-surface-dark border border-border-dark p-5 relative overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-4xl">warning</span>
+</div>
+<p class="text-slate-400 text-xs font-mono uppercase tracking-widest mb-1">Hazardous</p>
+<p class="text-white text-2xl font-mono font-bold">958</p>
+<div class="flex items-center gap-1 text-accent-green text-xs mt-2 font-mono">
+<span class="material-symbols-outlined text-sm">arrow_upward</span>
+<span>+45% spike</span>
+</div>
+</div>
+<!-- Metric Card 4 -->
+<div class="bg-surface-dark border border-border-dark p-5 relative overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-4xl">percent</span>
+</div>
+<p class="text-slate-400 text-xs font-mono uppercase tracking-widest mb-1">Hazard Rate</p>
+<p class="text-white text-2xl font-mono font-bold">6.7%</p>
+<div class="flex items-center gap-1 text-accent-green text-xs mt-2 font-mono">
+<span class="material-symbols-outlined text-sm">arrow_upward</span>
+<span>+0.5% critical</span>
+</div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- CLASS DISTRIBUTION -->
+<section class="flex-1 flex flex-col bg-surface-dark border border-border-dark p-5 h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-white text-sm font-bold uppercase tracking-widest flex items-center gap-2 mb-1">
+                                    Class Distribution
+                                </h3>
+<p class="text-xs text-slate-500 font-mono">TOP 10 DETECTED OBJECTS</p>
+</div>
+<span class="material-symbols-outlined text-slate-600">bar_chart</span>
+</div>
+<div class="flex flex-col gap-4 flex-1">
+<!-- Item 1 -->
+<div class="grid grid-cols-[100px_1fr_40px] items-center gap-3">
+<span class="text-slate-400 text-xs font-mono font-bold uppercase truncate text-right">Coffee-Mach</span>
+<div class="h-2 bg-slate-800 w-full relative">
+<div class="absolute top-0 left-0 h-full bg-primary" style="width: 85%"></div>
+</div>
+<span class="text-white text-xs font-mono text-right">85%</span>
+</div>
+<!-- Item 2 -->
+<div class="grid grid-cols-[100px_1fr_40px] items-center gap-3">
+<span class="text-slate-400 text-xs font-mono font-bold uppercase truncate text-right">Battery</span>
+<div class="h-2 bg-slate-800 w-full relative">
+<div class="absolute top-0 left-0 h-full bg-primary" style="width: 72%"></div>
+</div>
+<span class="text-white text-xs font-mono text-right">72%</span>
+</div>
+<!-- Item 3 -->
+<div class="grid grid-cols-[100px_1fr_40px] items-center gap-3">
+<span class="text-slate-400 text-xs font-mono font-bold uppercase truncate text-right">Laptop</span>
+<div class="h-2 bg-slate-800 w-full relative">
+<div class="absolute top-0 left-0 h-full bg-primary" style="width: 64%"></div>
+</div>
+<span class="text-white text-xs font-mono text-right">64%</span>
+</div>
+<!-- Item 4 -->
+<div class="grid grid-cols-[100px_1fr_40px] items-center gap-3">
+<span class="text-slate-400 text-xs font-mono font-bold uppercase truncate text-right">Phone</span>
+<div class="h-2 bg-slate-800 w-full relative">
+<div class="absolute top-0 left-0 h-full bg-slate-600" style="width: 58%"></div>
+</div>
+<span class="text-white text-xs font-mono text-right">58%</span>
+</div>
+<!-- Item 5 -->
+<div class="grid grid-cols-[100px_1fr_40px] items-center gap-3">
+<span class="text-slate-400 text-xs font-mono font-bold uppercase truncate text-right">Monitor</span>
+<div class="h-2 bg-slate-800 w-full relative">
+<div class="absolute top-0 left-0 h-full bg-slate-600" style="width: 45%"></div>
+</div>
+<span class="text-white text-xs font-mono text-right">45%</span>
+</div>
+<!-- Item 6 -->
+<div class="grid grid-cols-[100px_1fr_40px] items-center gap-3">
+<span class="text-slate-400 text-xs font-mono font-bold uppercase truncate text-right">Cable</span>
+<div class="h-2 bg-slate-800 w-full relative">
+<div class="absolute top-0 left-0 h-full bg-slate-600" style="width: 30%"></div>
+</div>
+<span class="text-white text-xs font-mono text-right">30%</span>
+</div>
+<!-- Item 7 -->
+<div class="grid grid-cols-[100px_1fr_40px] items-center gap-3">
+<span class="text-slate-400 text-xs font-mono font-bold uppercase truncate text-right">Printer</span>
+<div class="h-2 bg-slate-800 w-full relative">
+<div class="absolute top-0 left-0 h-full bg-slate-600" style="width: 25%"></div>
+</div>
+<span class="text-white text-xs font-mono text-right">25%</span>
+</div>
+</div>
+</section>
+<!-- THREAT TIMELINE -->
+<section class="flex-1 flex flex-col bg-surface-dark border border-border-dark p-5 h-full">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-white text-sm font-bold uppercase tracking-widest flex items-center gap-2 mb-1">
+                                    Threat Timeline
+                                </h3>
+<p class="text-xs text-slate-500 font-mono">HAZARD SPIKES (24H)</p>
+</div>
+<div class="flex items-center gap-2 text-xs font-mono text-accent-red">
+<span class="size-2 rounded-full bg-accent-red animate-pulse"></span>
+                                LIVE
+                            </div>
+</div>
+<div class="flex-1 flex flex-col justify-end min-h-[200px] relative">
+<!-- Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+<div class="w-full h-px bg-slate-500 border-dashed"></div>
+<div class="w-full h-px bg-slate-500 border-dashed"></div>
+<div class="w-full h-px bg-slate-500 border-dashed"></div>
+<div class="w-full h-px bg-slate-500 border-dashed"></div>
+</div>
+<!-- Chart Area -->
+<svg class="w-full h-full z-10" preserveaspectratio="none" viewbox="0 0 300 100">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#fa5838" stop-opacity="0.5"></stop>
+<stop offset="100%" stop-color="#fa5838" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,90 Q30,80 50,60 T100,50 T150,80 T200,30 T250,70 T300,40 V100 H0 Z" fill="url(#chartGradient)"></path>
+<path d="M0,90 Q30,80 50,60 T100,50 T150,80 T200,30 T250,70 T300,40" fill="none" stroke="#fa5838" stroke-width="2"></path>
+</svg>
+<div class="flex justify-between text-[10px] font-mono text-slate-500 mt-2 pt-2 border-t border-slate-800">
+<span>00:00</span>
+<span>06:00</span>
+<span>12:00</span>
+<span>18:00</span>
+<span>24:00</span>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- RIGHT COLUMN (Assessments & System) -->
+<div class="xl:col-span-4 flex flex-col gap-6">
+<!-- HAZARD ASSESSMENT -->
+<section class="bg-surface-dark border border-border-dark p-5">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-white text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+<span class="w-1 h-4 bg-accent-red"></span>
+                            Hazard Assessment
+                        </h3>
+<span class="material-symbols-outlined text-slate-600">report_problem</span>
+</div>
+<div class="flex items-end justify-between mb-2">
+<span class="text-slate-400 text-xs font-mono uppercase">Criticality Index</span>
+<span class="text-accent-red text-4xl font-mono font-bold leading-none">6.7%</span>
+</div>
+<div class="w-full bg-slate-800 h-1 mb-6">
+<div class="h-full bg-accent-red" style="width: 67%;"></div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between p-2 bg-white/5 border-l-2 border-accent-red">
+<span class="text-xs font-mono text-white">LITHIUM_LEAK</span>
+<span class="text-[10px] bg-accent-red/20 text-accent-red px-1 py-0.5 font-bold uppercase">Severe</span>
+</div>
+<div class="flex items-center justify-between p-2 bg-white/5 border-l-2 border-orange-500">
+<span class="text-xs font-mono text-white">BROKEN_CRT</span>
+<span class="text-[10px] bg-orange-500/20 text-orange-500 px-1 py-0.5 font-bold uppercase">High</span>
+</div>
+<div class="flex items-center justify-between p-2 bg-white/5 border-l-2 border-yellow-500">
+<span class="text-xs font-mono text-white">UNSORTED_CABLES</span>
+<span class="text-[10px] bg-yellow-500/20 text-yellow-500 px-1 py-0.5 font-bold uppercase">Mod</span>
+</div>
+</div>
+</section>
+<!-- RECYCLING DISPATCH -->
+<section class="bg-surface-dark border border-border-dark p-5 flex-1">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-white text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+<span class="w-1 h-4 bg-slate-400"></span>
+                            Recycling Dispatch
+                        </h3>
+<span class="material-symbols-outlined text-slate-600">local_shipping</span>
+</div>
+<div class="flex flex-col gap-px bg-slate-800 border border-slate-800">
+<!-- Header -->
+<div class="grid grid-cols-[1fr_auto] bg-surface-dark p-2 text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+<span>Facility / Type</span>
+<span>Status</span>
+</div>
+<!-- Row 1 -->
+<div class="grid grid-cols-[1fr_auto] items-center bg-[#151c19] p-2 hover:bg-white/5 transition-colors border-l-2 border-accent-red">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-white uppercase">Hazardous Facility A</span>
+<span class="text-[10px] text-slate-400 font-mono">Battery / Chemical</span>
+</div>
+<span class="text-[10px] bg-accent-red text-background-dark px-1.5 py-0.5 font-bold uppercase">Critical</span>
+</div>
+<!-- Row 2 -->
+<div class="grid grid-cols-[1fr_auto] items-center bg-[#151c19] p-2 hover:bg-white/5 transition-colors border-l-2 border-primary">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-white uppercase">E-Waste Center 4</span>
+<span class="text-[10px] text-slate-400 font-mono">General Electronics</span>
+</div>
+<span class="text-[10px] bg-primary text-background-dark px-1.5 py-0.5 font-bold uppercase">Active</span>
+</div>
+<!-- Row 3 -->
+<div class="grid grid-cols-[1fr_auto] items-center bg-[#151c19] p-2 hover:bg-white/5 transition-colors border-l-2 border-primary">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-white uppercase">Metal Recovery Unit</span>
+<span class="text-[10px] text-slate-400 font-mono">Scrap / Copper</span>
+</div>
+<span class="text-[10px] bg-primary text-background-dark px-1.5 py-0.5 font-bold uppercase">Active</span>
+</div>
+<!-- Row 4 -->
+<div class="grid grid-cols-[1fr_auto] items-center bg-[#151c19] p-2 hover:bg-white/5 transition-colors border-l-2 border-slate-500">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-white uppercase">Plastic Sorting B</span>
+<span class="text-[10px] text-slate-400 font-mono">ABS / PVC</span>
+</div>
+<span class="text-[10px] bg-slate-700 text-white px-1.5 py-0.5 font-bold uppercase">Pending</span>
+</div>
+<!-- Row 5 -->
+<div class="grid grid-cols-[1fr_auto] items-center bg-[#151c19] p-2 hover:bg-white/5 transition-colors border-l-2 border-slate-500">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-white uppercase">Glass Recycling</span>
+<span class="text-[10px] text-slate-400 font-mono">Screens / Panels</span>
+</div>
+<span class="text-[10px] bg-slate-700 text-white px-1.5 py-0.5 font-bold uppercase">Pending</span>
+</div>
+<!-- Row 6 -->
+<div class="grid grid-cols-[1fr_auto] items-center bg-[#151c19] p-2 hover:bg-white/5 transition-colors border-l-2 border-primary">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-white uppercase">Refurbish Center</span>
+<span class="text-[10px] text-slate-400 font-mono">Laptops / Phones</span>
+</div>
+<span class="text-[10px] bg-primary text-background-dark px-1.5 py-0.5 font-bold uppercase">Active</span>
+</div>
+</div>
+</section>
+<!-- SYSTEM TELEMETRY -->
+<section class="bg-surface-dark border border-border-dark p-5">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-white text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+<span class="w-1 h-4 bg-slate-600"></span>
+                            System Telemetry
+                        </h3>
+<span class="material-symbols-outlined text-slate-600">memory</span>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-4">
+<!-- GPU Load -->
+<div>
+<div class="flex justify-between text-[10px] font-mono uppercase text-slate-400 mb-1">
+<span>GPU Load</span>
+<span class="text-primary">84%</span>
+</div>
+<div class="h-1.5 bg-slate-800 w-full flex gap-0.5">
+<div class="h-full bg-primary flex-1"></div>
+<div class="h-full bg-primary flex-1"></div>
+<div class="h-full bg-primary flex-1"></div>
+<div class="h-full bg-primary flex-1"></div>
+<div class="h-full bg-primary flex-1"></div>
+<div class="h-full bg-slate-700 flex-1"></div>
+</div>
+</div>
+<!-- Memory -->
+<div>
+<div class="flex justify-between text-[10px] font-mono uppercase text-slate-400 mb-1">
+<span>Memory</span>
+<span class="text-primary">62%</span>
+</div>
+<div class="h-1.5 bg-slate-800 w-full flex gap-0.5">
+<div class="h-full bg-primary flex-1"></div>
+<div class="h-full bg-primary flex-1"></div>
+<div class="h-full bg-primary flex-1"></div>
+<div class="h-full bg-slate-700 flex-1"></div>
+<div class="h-full bg-slate-700 flex-1"></div>
+<div class="h-full bg-slate-700 flex-1"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between border-t border-slate-800 pt-3">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-accent-green shadow-[0_0_8px_#0bda49]"></span>
+<span class="text-[10px] font-mono text-slate-300 uppercase">Triton Inference</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-accent-green shadow-[0_0_8px_#0bda49]"></span>
+<span class="text-[10px] font-mono text-slate-300 uppercase">YOLOv8 Model</span>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- Map visualization background element (implied decoration) -->
+<div class="fixed bottom-0 right-0 pointer-events-none opacity-5 z-0" style="mix-blend-mode: screen;">
+<img alt="Map Background" class="w-[600px] h-auto grayscale invert" data-alt="Abstract digital world map network visualization" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnes-w_xeaIlHbQHDEXG-C7F07jMEPGTK6Dndg2FlQpBrSKW_IM3Xrh2ebku3qUwDd8GQEhZkgJQQMTsZFaXlx-rrqKyj74Sr59WQv-Axui4EV0wi-k950Qxlse-ex09v7sap_m04hmfE_oboGSdkfpk6V0k0mIK3DMNcwtKUePd24gtnGDCfZsSWySQuargiPXajyz0D20iYRP55KHFyd68IkoU3lnQtXUiw2j1qq4ydxhjCoe-Rh6JNBEBCC1g42iwAP3YSR8pib"/>
+</div>
+</body></html>
