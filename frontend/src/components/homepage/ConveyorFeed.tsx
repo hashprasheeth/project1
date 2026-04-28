@@ -1,10 +1,11 @@
-import { useRef, useCallback } from 'react';
-import type { Detection } from '@/data/types';
+import { useRef, useCallback, useEffect, useMemo, useState } from 'react';
+import type { CapturedFramePreview, Detection } from '@/data/types';
 import type { VideoSource } from '@/hooks/useDigitalTwin';
 import { cn } from '@/lib/utils';
 
 interface ConveyorFeedProps {
   readonly detections: Detection[];
+  readonly framePreview: CapturedFramePreview | null;
   readonly hasHazard: boolean;
   readonly videoRef: React.RefObject<HTMLVideoElement | null>;
   readonly videoSource: VideoSource;
@@ -27,8 +28,16 @@ function getLabelBg(d: Detection): string {
   return 'bg-primary';
 }
 
+type VideoViewport = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
 export default function ConveyorFeed({
   detections,
+  framePreview,
   hasHazard,
   videoRef,
   videoSource,
@@ -39,6 +48,13 @@ export default function ConveyorFeed({
   onLoadVideo,
 }: ConveyorFeedProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [viewport, setViewport] = useState<VideoViewport>({
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+  });
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,6 +65,75 @@ export default function ConveyorFeed({
   );
 
   const hazardCount = detections.filter((d) => d.hazardous).length;
+  const hasVideo = videoSource !== 'none';
+  const hasPreview = Boolean(framePreview?.imageUrl);
+
+  useEffect(() => {
+    const updateViewport = () => {
+      const stage = stageRef.current;
+      const video = videoRef.current;
+      if (!stage || !video) {
+        return;
+      }
+
+      const stageWidth = stage.clientWidth;
+      const stageHeight = stage.clientHeight;
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+
+      if (!stageWidth || !stageHeight || !videoWidth || !videoHeight) {
+        setViewport({ left: 0, top: 0, width: stageWidth, height: stageHeight });
+        return;
+      }
+
+      const stageAspect = stageWidth / stageHeight;
+      const videoAspect = videoWidth / videoHeight;
+
+      let width = stageWidth;
+      let height = stageHeight;
+      let left = 0;
+      let top = 0;
+
+      if (videoAspect > stageAspect) {
+        height = stageWidth / videoAspect;
+        top = (stageHeight - height) / 2;
+      } else {
+        width = stageHeight * videoAspect;
+        left = (stageWidth - width) / 2;
+      }
+
+      setViewport({ left, top, width, height });
+    };
+
+    updateViewport();
+    const video = videoRef.current;
+    const stage = stageRef.current;
+
+    if (!stage) {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(() => updateViewport());
+    resizeObserver.observe(stage);
+    video?.addEventListener('loadedmetadata', updateViewport);
+    window.addEventListener('resize', updateViewport);
+
+    return () => {
+      resizeObserver.disconnect();
+      video?.removeEventListener('loadedmetadata', updateViewport);
+      window.removeEventListener('resize', updateViewport);
+    };
+  }, [videoRef, videoSource, frameNumber]);
+
+  const overlayStyle = useMemo(
+    () => ({
+      left: `${viewport.left}px`,
+      top: `${viewport.top}px`,
+      width: `${viewport.width}px`,
+      height: `${viewport.height}px`,
+    }),
+    [viewport],
+  );
 
   return (
     <div className="flex-1 flex flex-col p-4 min-h-0">
@@ -78,17 +163,26 @@ export default function ConveyorFeed({
         </div>
       </div>
 
-      <div className="relative flex-1 bg-black border border-border-dark overflow-hidden min-h-[200px]">
+      <div ref={stageRef} className="relative flex-1 bg-black border border-border-dark overflow-hidden min-h-[200px]">
         {/* Video element */}
         <video
           ref={videoRef}
           className={cn(
             'absolute inset-0 w-full h-full object-contain bg-black',
+            hasPreview && 'opacity-0',
             videoSource === 'none' && 'hidden',
           )}
           muted
           playsInline
         />
+
+        {hasPreview && (
+          <img
+            alt="Latest detected frame"
+            className="absolute inset-0 w-full h-full object-contain bg-black"
+            src={framePreview?.imageUrl}
+          />
+        )}
 
         {/* Placeholder when no video source */}
         {videoSource === 'none' && (
@@ -142,23 +236,37 @@ export default function ConveyorFeed({
           )}
         </div>
 
-        {/* Bounding boxes overlay */}
-        {detections.map((d) => (
-          <div
-            key={d.id}
-            className={cn('absolute border-2 z-20', getBorderColor(d))}
-            style={{
-              left: `${d.bbox.x * 100}%`,
-              top: `${d.bbox.y * 100}%`,
-              width: `${d.bbox.w * 100}%`,
-              height: `${d.bbox.h * 100}%`,
-            }}
-          >
-            <div className={cn('absolute -top-5 left-0 text-black text-[10px] font-bold px-1 whitespace-nowrap', getLabelBg(d))}>
-              {d.className.replace(/-/g, ' ')} ({Math.round(d.confidence * 100)}%)
-            </div>
+        {/* Bounding boxes overlay aligned to the rendered video viewport */}
+        {hasVideo && viewport.width > 0 && viewport.height > 0 && (
+          <div className="absolute z-20 pointer-events-none" style={overlayStyle}>
+            {detections.map((d) => {
+              const label = d.className.replace(/-/g, ' ');
+              const confidence = `${Math.round(d.confidence * 100)}%`;
+              return (
+                <div
+                  key={d.id}
+                  className={cn('absolute border-2 shadow-[0_0_0_1px_rgba(0,0,0,0.45)]', getBorderColor(d))}
+                  style={{
+                    left: `${d.bbox.x * 100}%`,
+                    top: `${d.bbox.y * 100}%`,
+                    width: `${d.bbox.w * 100}%`,
+                    height: `${d.bbox.h * 100}%`,
+                  }}
+                >
+                  <div
+                    className={cn(
+                      'absolute left-0 top-0 -translate-y-full max-w-[260px] rounded-sm px-1.5 py-1 text-[10px] font-bold uppercase tracking-wide text-black shadow-md',
+                      getLabelBg(d),
+                    )}
+                  >
+                    <div className="truncate">{label}</div>
+                    <div className="text-[9px] opacity-90">CONF {confidence}</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        ))}
+        )}
 
         {/* Error display */}
         {error && (

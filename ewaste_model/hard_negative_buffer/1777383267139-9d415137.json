@@ -1,0 +1,65 @@
+{
+  "sample_id": "1777383267139-9d415137",
+  "captured_at": 1777383267140,
+  "frame_number": 371,
+  "processing_time_ms": 74.8,
+  "content_type": "image/jpeg",
+  "total_items": 3,
+  "detected_classes": [
+    "Electronic-Waste"
+  ],
+  "is_hazardous": true,
+  "detections": [
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9673,
+      "bbox": [
+        598.2,
+        502.2,
+        1153.9,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9115,
+      "bbox": [
+        390.6,
+        471.4,
+        623.0,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.8877,
+      "bbox": [
+        104.7,
+        421.3,
+        461.4,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    }
+  ],
+  "capture_reason": {
+    "zero_detections": false,
+    "generic_ewaste_count": 3,
+    "low_confidence_count": 0
+  },
+  "image_file": "1777383267139-9d415137.jpg"
+}

@@ -1,0 +1,96 @@
+{
+  "sample_id": "1777378356442-fe21beaf",
+  "captured_at": 1777378356443,
+  "frame_number": 425,
+  "processing_time_ms": 214.47,
+  "content_type": "image/jpeg",
+  "total_items": 5,
+  "detected_classes": [
+    "CRT-TV",
+    "Electronic-Waste"
+  ],
+  "is_hazardous": true,
+  "detections": [
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9969,
+      "bbox": [
+        0.0,
+        648.2,
+        1277.5,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9947,
+      "bbox": [
+        269.3,
+        687.9,
+        456.4,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "CRT-TV",
+      "confidence": 0.9907,
+      "bbox": [
+        0.0,
+        0.0,
+        1277.5,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "hazardous",
+      "recycling_tip": "\u26a0\ufe0f HAZARDOUS: Dispose at specialized hazardous waste facility only"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9815,
+      "bbox": [
+        583.1,
+        673.2,
+        1277.5,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9432,
+      "bbox": [
+        0.0,
+        429.6,
+        489.8,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    }
+  ],
+  "capture_reason": {
+    "zero_detections": false,
+    "generic_ewaste_count": 4,
+    "low_confidence_count": 0
+  },
+  "image_file": "1777378356442-fe21beaf.jpg"
+}

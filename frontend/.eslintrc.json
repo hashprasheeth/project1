@@ -2,7 +2,8 @@
     "root": true,
     "env": {
         "browser": true,
-        "es2020": true
+        "es2020": true,
+        "node": true
     },
     "extends": [
         "eslint:recommended",
@@ -24,16 +25,23 @@
         }
     },
     "plugins": [
-        "react-refresh"
+        "react-refresh",
+        "@typescript-eslint"
+    ],
+    "overrides": [
+        {
+            "files": ["**/*.ts", "**/*.tsx"],
+            "parser": "@typescript-eslint/parser",
+            "extends": ["plugin:@typescript-eslint/recommended"],
+            "rules": {
+                "no-unused-vars": "off",
+                "@typescript-eslint/no-unused-vars": "error"
+            }
+        }
     ],
     "rules": {
-        "react-refresh/only-export-components": [
-            "warn",
-            {
-                "allowConstantExport": true
-            }
-        ],
-        "no-unused-vars": "warn",
+        "react-refresh/only-export-components": "off",
+        "no-unused-vars": "error",
         "react/prop-types": "off"
     }
 }

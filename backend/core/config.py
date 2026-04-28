@@ -11,10 +11,59 @@ class Settings(BaseSettings):
 
     MODEL_NAME: str = "efficientdet_d0"
     MODEL_INPUT_SIZE: int = 512
+    PREFERRED_CHECKPOINT_NAME: str = "efficientdet-d0_0_6860.pth"
     IMAGE_MEAN: list = [0.485, 0.456, 0.406]
     IMAGE_STD: list = [0.229, 0.224, 0.225]
 
-    HAZARDOUS_THRESHOLD: float = 0.85
+    # Precision-first demo thresholds.
+    # Goal: avoid embarrassing false positives in live/uncontrolled scenes.
+    DETECTION_CONFIDENCE_THRESHOLD: float = 0.5
+    # Keep a narrow fallback so true demo objects are not silently dropped.
+    DETECTION_ENABLE_FALLBACK: bool = False
+    DETECTION_FALLBACK_MIN_CONFIDENCE: float = 0.35
+    DETECTION_FALLBACK_TOP_K: int = 2
+    # Hazard classification is class-based, but keep this for compatibility.
+    HAZARDOUS_THRESHOLD: float = 0.78
+    MIN_DETECTION_AREA_RATIO: float = 0.00008
+    # Demo mode: allowlist to prevent weird off-class hallucinations.
+    ENABLE_ALLOWED_CLASS_FILTER: bool = True
+    ALLOWED_DETECTION_CLASSES: List[str] = [
+        "Smartphone",
+        "Battery",
+        "PCB",
+        "Laptop",
+        "CRT-TV",
+        "CRT-Monitor",
+        "Flat-Panel-TV",
+        "Flat-Panel-Monitor",
+        "Electronic-Waste",
+    ]
+    # Class-specific confidence floors to suppress common false positives.
+    CLASS_CONFIDENCE_FLOOR: Dict[str, float] = {
+        "Smartphone": 0.76,
+        "Battery": 0.7,
+        "PCB": 0.64,
+        "Laptop": 0.62,
+        "CRT-Monitor": 0.7,
+        "Flat-Panel-TV": 0.7,
+        "Flat-Panel-Monitor": 0.68,
+        "CRT-TV": 0.72,
+        "Electronic-Waste": 0.88,
+    }
+    ENABLE_CLASS_CONFIDENCE_FLOOR: bool = True
+    DEFAULT_CLASS_CONFIDENCE_FLOOR: float = 0.64
+    # Reject ambiguous classifications (top1 too close to top2).
+    DETECTION_MIN_CLASS_MARGIN: float = 0.1
+    COLLAPSE_AMBIGUOUS_TO_EWASTE: bool = False
+    # Phone-first live behavior: keep confident phone detections, suppress noisy others.
+    PHONE_PRIORITY_ENABLED: bool = True
+    PHONE_PRIORITY_CLASS: str = "Smartphone"
+    PHONE_PRIORITY_MIN_CONFIDENCE: float = 0.78
+    PHONE_PRIORITY_OTHER_MIN_CONFIDENCE: float = 0.72
+    # Prevent the generic class from swallowing a person-sized region in live camera mode.
+    GENERIC_EWASTE_MAX_AREA_RATIO: float = 0.18
+    GENERIC_EWASTE_MAX_ASPECT_RATIO: float = 1.6
+    FINAL_LABEL_NMS_IOU: float = 0.35
     HAZARDOUS_CLASSES: List[str] = [
         "Battery", "CRT-Monitor", "CRT-TV", "PCB",
         "Smoke-Detector", "Compact-Fluorescent-Lamps", "Neon-Sign",
@@ -38,6 +87,11 @@ class Settings(BaseSettings):
         project_root = Path(__file__).parent.parent.parent
         ckpt_dir = project_root / "ewaste_model" / "checkpoints" / "ewaste"
         if ckpt_dir.exists():
+            preferred = ckpt_dir / self.PREFERRED_CHECKPOINT_NAME
+            if preferred.exists() and preferred.stat().st_size > 1_000_000:
+                self._checkpoint_path = preferred
+                print(f"[config] Preferred checkpoint: {preferred.name}")
+                return
             pth_files = sorted(ckpt_dir.glob("efficientdet-d0_*.pth"), key=lambda p: p.stat().st_mtime)
             # Filter out tiny files (corrupted checkpoints)
             pth_files = [p for p in pth_files if p.stat().st_size > 1_000_000]
@@ -110,7 +164,8 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:4173",
     ]
-    RATE_LIMIT_DETECT: str = "60/minute"
+    # Live camera/video mode needs a materially higher budget than manual uploads.
+    RATE_LIMIT_DETECT: str = "240/minute"
 
     class Config:
         env_file = ".env"

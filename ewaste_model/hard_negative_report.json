@@ -1,0 +1,12 @@
+{
+  "buffer_dir": "C:\\Users\\MSG\\Downloads\\prasheeth\\untrashify-main\\ewaste_model\\hard_negative_buffer",
+  "total_samples": 0,
+  "reason_counts": {},
+  "top_detected_classes": [],
+  "next_steps": [
+    "Manually review captured frames and relabel true objects.",
+    "Export labeled data to COCO format.",
+    "Place labeled COCO split under ewaste_model/hard_negative_labeled/train and valid.",
+    "Run training/retrain_with_hard_negatives.py"
+  ]
+}

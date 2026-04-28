@@ -1,0 +1,632 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{lipsum}
+
+\geometry{margin=1in}
+\setstretch{1.2}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\titleformat{\chapter}[display]
+  {\bfseries\Large\centering}
+  {CHAPTER \thechapter}
+  {0.5em}
+  {\Large}
+
+\newcommand{\imageplaceholder}[2]{
+\begin{figure}[H]
+    \centering
+    \fbox{
+        \begin{minipage}[c][2.2in][c]{0.85\textwidth}
+            \centering
+            \textbf{#1}\\
+            \vspace{0.3em}
+            Insert image here
+        \end{minipage}
+    }
+    \caption{#2}
+\end{figure}
+}
+
+\begin{document}
+
+% --------------------------------------------------
+% Title page
+% --------------------------------------------------
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    {\Large UNTRASHIFY: AN AI ENABLED E-WASTE DETECTION AND SORTING ASSISTANCE SYSTEM\par}
+    \vspace{0.8cm}
+    {\large A PROJECT REPORT\par}
+    \vspace{0.8cm}
+    {\large Submitted by\par}
+    \vspace{0.4cm}
+    {\large Team Members\par}
+    \vspace{0.5cm}
+    {\normalsize Under the Guidance of\par}
+    \vspace{0.3cm}
+    {\normalsize Faculty Guide Name\par}
+    \vspace{0.8cm}
+    {\normalsize in partial fulfillment of the requirements for the degree of\par}
+    \vspace{0.4cm}
+    {\large BACHELOR OF TECHNOLOGY\par}
+    \vspace{0.2cm}
+    {\large in\par}
+    \vspace{0.2cm}
+    {\large ARTIFICIAL INTELLIGENCE\par}
+    \vspace{0.8cm}
+    {\normalsize DEPARTMENT OF COMPUTATIONAL INTELLIGENCE\par}
+    {\normalsize COLLEGE OF ENGINEERING AND TECHNOLOGY\par}
+    {\normalsize SRM INSTITUTE OF SCIENCE AND TECHNOLOGY\par}
+    {\normalsize KATTANKULATHUR - 603 203\par}
+    \vfill
+    {\normalsize MAY 2026\par}
+\end{titlepage}
+
+\pagenumbering{roman}
+
+% --------------------------------------------------
+% Declaration
+% --------------------------------------------------
+\chapter*{Own Work Declaration Form}
+\addcontentsline{toc}{chapter}{Own Work Declaration Form}
+This report is prepared as part of the project titled \textbf{Untrashify: An AI Enabled E-Waste Detection and Sorting Assistance System}. We declare that this work is original and developed by our team based on our implementation, validation, and project reviews. All external references, frameworks, and datasets used in this project are properly acknowledged.
+
+We confirm the following:
+\begin{itemize}[leftmargin=2em]
+    \item All major ideas, implementation choices, and observations in this report are written in our own words.
+    \item All code references and tool usage are based on our actual project repository.
+    \item Figures to be inserted in this report will be screenshots from our own application and testing process.
+    \item We understand academic rules related to plagiarism and certify that this document follows those requirements.
+\end{itemize}
+
+\vspace{1cm}
+\noindent Student Signature(s): \rule{0.6\textwidth}{0.4pt}\\
+Registration Number(s): \rule{0.6\textwidth}{0.4pt}\\
+Date: \rule{0.4\textwidth}{0.4pt}
+
+% --------------------------------------------------
+% Bonafide
+% --------------------------------------------------
+\chapter*{Bonafide Certificate}
+\addcontentsline{toc}{chapter}{Bonafide Certificate}
+Certified that the project report titled \textbf{Untrashify: An AI Enabled E-Waste Detection and Sorting Assistance System} is the bonafide work carried out by the above mentioned student team under my supervision. To the best of my knowledge, the work presented here has not been submitted earlier for any degree or award.
+
+\vspace{1.5cm}
+\noindent Signature of Guide: \rule{0.35\textwidth}{0.4pt}\hfill Signature of HOD: \rule{0.35\textwidth}{0.4pt}
+
+\vspace{1cm}
+\noindent Examiner 1: \rule{0.35\textwidth}{0.4pt}\hfill Examiner 2: \rule{0.35\textwidth}{0.4pt}
+
+% --------------------------------------------------
+% Acknowledgement
+% --------------------------------------------------
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+We express our sincere gratitude to the management, department faculty, and project review panel for their support throughout this work. We thank our guide for continuous mentoring during requirement analysis, model integration, backend hardening, and system validation phases.
+
+We also acknowledge the open source communities behind FastAPI, React, TypeScript, PyTorch, and EfficientDet resources that enabled rapid prototyping and iterative improvement. We thank our classmates and peers for constructive review comments during intermediate demos.
+
+Finally, we thank our families for their encouragement and patience during intense debugging, training, and documentation cycles.
+
+% --------------------------------------------------
+% Abstract
+% --------------------------------------------------
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+Untrashify is a web based intelligent e-waste detection platform designed to assist safe and practical sorting in live camera and uploaded video workflows. The system addresses common failures seen in early prototypes of computer vision projects, including mock data leakage, unstable labels, inaccurate overlays, and misleading aggregate counters. The final implementation integrates a React based frontend, a FastAPI backend, and a PyTorch EfficientDet inference pipeline tuned for production like behavior under constrained review timelines.
+
+The solution emphasizes operational trust. Detection requests are served only through backend model inference, with mock sources removed from frontend and API paths. Bounding boxes are synchronized to the inferred frame using frame previews and viewport aware overlay logic, so the rendered detection maps to the visible object region. Post processing in the safety engine applies confidence floors, class constraints, margin checks, class aware suppression, final label deduplication, and live mode prioritization to reduce random detections and grouped box noise.
+
+This report presents the project lifecycle in sprint format, including product vision, backlog execution, architecture evolution, testing approach, and observed outcomes. It also documents key engineering decisions made under presentation deadlines, such as rate limit tuning, endpoint level observability, label stabilization consistency, and detection precision hardening. The current system provides real time detection with confidence values, hazard awareness, and recyclable category guidance while remaining extensible for further training and dataset expansion.
+
+\tableofcontents
+\listoffigures
+\listoftables
+\newpage
+
+\chapter*{Abbreviations}
+\addcontentsline{toc}{chapter}{Abbreviations}
+\begin{longtable}{p{0.2\textwidth}p{0.75\textwidth}}
+AI & Artificial Intelligence \\
+API & Application Programming Interface \\
+CORS & Cross Origin Resource Sharing \\
+CV & Computer Vision \\
+FPS & Frames Per Second \\
+IoU & Intersection over Union \\
+NMS & Non Maximum Suppression \\
+OCR & Optical Character Recognition \\
+PCB & Printed Circuit Board \\
+RLS & Row Level Security \\
+SPA & Single Page Application \\
+UI & User Interface \\
+\end{longtable}
+
+\cleardoublepage
+\pagenumbering{arabic}
+
+\chapter{INTRODUCTION}
+\section{Introduction to Project}
+Electronic waste handling in informal and semi automated environments suffers from low traceability, inconsistent categorization, and delayed hazard handling. Manual sorting is usually performed under time pressure. In that situation, mixed piles containing batteries, circuit boards, adapters, and display scraps are difficult to separate safely in one pass. Misclassification at this stage directly affects downstream recycling, worker safety, and reporting quality.
+
+Untrashify was designed to act as a practical decision support layer for this first sorting stage. The core idea is simple: capture a live or uploaded visual feed, run backend model inference, and return detections that are readable by non expert operators. Each detection includes a class label, confidence score, hazard signal, and recycling guidance. The objective is not to replace human judgment, but to reduce avoidable uncertainty during repetitive sorting tasks.
+
+The project initially started as a front end integration and presentation effort. During early trials, we observed typical real world issues that make AI demos unreliable: random detections in live mode, stale processes causing old settings to run, incorrect overlay mapping, and inflated counters that confused reviewers. Because of this, the project direction changed from feature breadth to output trust and behavioral consistency.
+
+Untrashify now runs as a two tier web application with clear separation of responsibilities. The React frontend handles user interaction, camera or upload capture, and visualization. The FastAPI backend performs inference, post processing, tracking updates, and telemetry generation. This architecture ensures that visible detections are model backed, traceable, and repeatable across test sessions.
+
+\section{Motivation}
+The motivation for Untrashify is both environmental and operational. E-waste volume is increasing across households, offices, and campuses, but segregation quality remains inconsistent because manual sorting relies heavily on experience and speed. When operators are forced to decide quickly, low visibility items and visually similar components are often grouped into generic categories, reducing recycling value and increasing hazard risk.
+
+From an engineering standpoint, our motivation was to build a system that works under live scrutiny, not only in curated screenshots. The team faced repeated review scenarios where users challenged counter accuracy, detection stability, and live feed behavior. That feedback made it clear that model accuracy alone is not enough. A reliable product also needs deterministic API behavior, explicit error handling, stable overlays, and transparent runtime diagnostics.
+
+This project therefore became a practical exercise in reliability engineering for AI products. We intentionally removed mock sources, tightened inference thresholds, improved post processing logic, and synchronized visualization with inferred frames. The result is a system that better reflects how production facing computer vision applications must behave when users depend on the output.
+
+\section{Sustainable Development Goal of the Project}
+The project aligns with SDG 12 (Responsible Consumption and Production) by improving practical handling of electronic waste at the segregation stage. When item categories are identified earlier, centers can reduce contamination between hazardous and non hazardous streams. Better first pass categorization improves the effectiveness of later recycling steps and lowers avoidable handling risk.
+
+The system also maps to SDG 9 (Industry, Innovation and Infrastructure) because it demonstrates how modern web architecture and machine learning can be used in a deployable and maintainable format. Instead of a lab only prototype, Untrashify combines UI, API, and model inference in an integrated workflow that can be executed in normal development and containerized environments.
+
+A realistic SDG discussion requires scope discipline. This project does not claim to solve the entire e-waste value chain or certify compliance by itself. Its contribution is focused: improve visibility, consistency, and hazard awareness at the sorting interface so that teams can make better operational decisions with less ambiguity.
+
+\section{Product Vision Statement}
+\subsection{Audience}
+\textbf{Primary audience:} recycling operators, collection center staff, and demo reviewers who need quick visual categorization support.\\
+\textbf{Secondary audience:} engineering teams evaluating integration patterns for computer vision in web products.
+
+\subsection{Needs}
+\begin{itemize}
+    \item Real detections only, with no simulated feed outputs.
+    \item Fast live feed updates with stable labels and confidence reporting.
+    \item Hazard centric alerting for battery and display related classes.
+    \item Operational dashboards that expose detection trends and logs.
+\end{itemize}
+
+\subsection{Core Product and Additional Features}
+The core product is a React plus FastAPI application with EfficientDet inference and live video processing. Additional features include upload mode, class explorer, dispatch and logs panels, security hardened backend endpoints, and Docker based deployment guidance.
+
+\subsection{Values and Differentiators}
+Untrashify prioritizes output trust, not visual novelty. Differentiators include strict mock removal, post stabilization metadata consistency, viewport synced overlays, and final label deduplication in post processing.
+
+\section{Product Goal}
+The product goal is to deliver an end to end e-waste detection system that remains understandable and trustworthy during live use. For our project context, success is not measured only by whether the model detects at least one object. Success means the system produces stable, interpretable outputs over repeated sessions and does not mislead users with synthetic values or stale process behavior.
+
+Operationally, the target experience is straightforward. A user opens live camera or upload mode, sees clearly mapped boxes with confidence values, receives hazard cues for risky classes, and can verify that the output came from backend inference rather than mock placeholders. Technically, this required strict API path cleanup, post processing calibration, and better synchronization between capture and overlay rendering.
+
+The goal also includes presentation readiness under limited time. The system should be easy to run, easy to explain, and robust enough for evaluators to test without hidden setup assumptions.
+
+\section{Product Backlog (Key User Stories with Desired Outcomes)}
+\begin{table}[H]
+    \centering
+    \caption{Product backlog with key user stories}
+    \begin{tabularx}{\textwidth}{|c|X|X|}
+        \hline
+        ID & User story & Desired outcome \\
+        \hline
+        US-01 & As a user, I want live camera input to run backend model inference only. & Zero mock detections in live feed. \\
+        \hline
+        US-02 & As a reviewer, I want each object mapped with label and confidence. & Accurate object wise bounding boxes. \\
+        \hline
+        US-03 & As an operator, I want hazardous items highlighted quickly. & Safer handling workflow. \\
+        \hline
+        US-04 & As a developer, I want logs and stats to reflect real backend activity. & Reliable debugging and review evidence. \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\section{Product Release Plan}
+\begin{table}[H]
+    \centering
+    \caption{Release plan summary}
+    \begin{tabular}{|l|l|l|}
+        \hline
+        Sprint & Focus area & Delivery objective \\
+        \hline
+        Sprint 1 & UI redesign and real API integration & Remove mock paths and align baseline UX \\
+        \hline
+        Sprint 2 & Detection reliability hardening & Improve label quality and overlay accuracy \\
+        \hline
+        Sprint 3 & Final stabilization and demo readiness & Validate performance, logs, and deployment flow \\
+        \hline
+    \end{tabular}
+\end{table}
+\imageplaceholder{Planner board screenshot placeholder}{Project planning board for Untrashify}
+
+\chapter{SPRINT PLANNING AND EXECUTION}
+\section{Sprint 1}
+\subsection{Sprint Goal with User Stories of Sprint 1}
+Sprint 1 focused on establishing a trustworthy baseline. We replaced mock driven frontend behavior with real backend integration and redesigned the visible interface to match presentation expectations. At this stage, the main challenge was eliminating ambiguity in data origin so that every displayed metric or detection had a clear backend source.
+
+\begin{table}[H]
+    \centering
+    \caption{Detailed user stories of Sprint 1}
+    \begin{tabularx}{\textwidth}{|c|X|X|c|}
+        \hline
+        ID & User story & Acceptance criteria & Status \\
+        \hline
+        S1-US1 & Integrate real detection API in homepage flow. & Requests use backend endpoints and show actual errors. & Done \\
+        \hline
+        S1-US2 & Remove mock API and static mock dataset dependencies. & No UI component reads from mock sources. & Done \\
+        \hline
+        S1-US3 & Apply target UI layout for command center style dashboard. & Updated header, feed area, and key cards. & Done \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\subsection{Functional Document}
+Scope included feed controls, live detection cards, throughput display, logs panel integration, and dispatch queue integration. We replaced simulated data flows with real endpoints and standardized mapping logic in the client API layer. This allowed the UI to handle backend schema consistently and reduced silent failures when response shape changed.
+
+We also cleaned earlier conditional paths that enabled mock mode behavior. Removing these branches made runtime behavior easier to reason about and prevented accidental fallback to synthetic output during demos.
+
+\subsection{Architecture Document}
+The architecture after Sprint 1 established clear API contracts between the React client and FastAPI server. Frontend hooks were split by domain: detections, stats, logs, dispatch, and digital twin controls. This modular split reduced coupling and made debugging faster, because each domain could be validated independently.
+
+On the backend side, endpoint responsibilities were clarified so detection, telemetry, and reset functions could be tested separately. This was important for tracing startup anomalies and eliminating confusion around inherited state.
+\imageplaceholder{Architecture figure placeholder}{System architecture after Sprint 1}
+
+\subsection{UI Design}
+Screens were updated to a unified operations center style with stronger visual grouping of feed, hazard state, throughput metrics, and recent captures. The intent was to improve scan speed for reviewers, so critical information could be read without navigating multiple pages.
+
+We used clear hierarchy in labels, simplified card grouping, and removed decorative noise that did not aid operational understanding.
+\imageplaceholder{Sprint 1 UI placeholder}{UI design updates introduced in Sprint 1}
+
+\subsection{Functional Test Cases}
+\begin{table}[H]
+    \centering
+    \caption{Functional test cases for Sprint 1}
+    \begin{tabularx}{\textwidth}{|c|X|X|X|}
+        \hline
+        Test ID & Scenario & Expected result & Outcome \\
+        \hline
+        S1-T1 & Start live camera and run inference loop & Detections fetched from backend endpoint & Pass \\
+        \hline
+        S1-T2 & Backend returns error status & Frontend displays actionable failure state & Pass \\
+        \hline
+        S1-T3 & Open logs and dispatch widgets & Real API data appears without placeholders & Pass \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\subsection{Daily Call Progress}
+Daily reviews tracked endpoint readiness, UI parity, and regression checks during mock removal. Calls also documented integration blockers such as incorrect local ports and stale process conflicts, which were common during early merge cycles.
+
+\subsection{Committed vs Completed User Stories}
+Committed stories: 3, completed stories: 3. The sprint closed with full story completion.
+\imageplaceholder{Sprint 1 progress chart placeholder}{Committed vs completed user stories for Sprint 1}
+
+\subsection{Sprint Retrospective}
+What worked well: rapid frontend refactoring and API hook separation.\\
+Improvement area: process controls for stale local servers and port conflicts were initially weak. Future sprints needed stricter startup discipline and explicit verification of active backend instances.
+
+\section{Sprint 2}
+\subsection{Sprint Goal with User Stories of Sprint 2}
+Sprint 2 addressed low trust outputs in live feed mode, including random detections, weak confidence behavior, and overlay misalignment. This sprint became the technical core of the project, because user trust depended directly on these corrections.
+
+\begin{table}[H]
+    \centering
+    \caption{Detailed user stories of Sprint 2}
+    \begin{tabularx}{\textwidth}{|c|X|X|c|}
+        \hline
+        ID & User story & Acceptance criteria & Status \\
+        \hline
+        S2-US1 & Improve post processing to reduce random labels. & Confidence floors and class gating reduce false positives. & Done \\
+        \hline
+        S2-US2 & Align boxes to actual visible video area. & Overlay remains consistent under resize and letterbox. & Done \\
+        \hline
+        S2-US3 & Improve live mode responsiveness without overlapping requests. & Adaptive loop avoids request pile up. & Done \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\subsection{Functional Document}
+Backend changes included confidence threshold tuning, fallback control, class margin filtering, and post label deduplication. We also refined class allowlists and per class confidence floors to reduce confusion between similar categories such as storage devices and batteries.
+
+Frontend changes included frame preview synchronization and viewport aware coordinate mapping. Instead of drawing overlays against unconstrained container bounds, we mapped detections onto the exact visible frame area, which corrected drift in object-contain layouts.
+
+\subsection{Architecture Document}
+The detection flow was hardened from raw model outputs to filtered final labels. The pipeline moved through decode, thresholding, class aware suppression, label correction constraints, and final deduplication. A final NMS pass on resolved labels reduced grouped duplicate boxes that previously survived due to pre correction class differences.
+\imageplaceholder{Architecture figure placeholder}{Detection pipeline hardening in Sprint 2}
+
+\subsection{UI Design}
+Feed cards now show class labels with confidence percentages and latency metrics. Safety interlock indicators are tied to backend hazardous flags after stabilization, so the alert state reflects finalized labels instead of transient intermediate classes.
+
+The visual language was tuned for demonstration clarity: explicit confidence readouts, simplified legend behavior, and consistent spacing in overlay tags.
+\imageplaceholder{Sprint 2 UI placeholder}{Live feed overlay and telemetry improvements}
+
+\subsection{Functional Test Cases}
+\begin{table}[H]
+    \centering
+    \caption{Functional test cases for Sprint 2}
+    \begin{tabularx}{\textwidth}{|c|X|X|X|}
+        \hline
+        Test ID & Scenario & Expected result & Outcome \\
+        \hline
+        S2-T1 & Present human subject in camera frame & Reduced generic e-waste false positives & Pass \\
+        \hline
+        S2-T2 & Detect phone first in mixed scene & Non phone noise suppressed in phone priority mode & Pass \\
+        \hline
+        S2-T3 & Rapid camera movement and resize & Bounding boxes remain mapped to inferred frame & Pass \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\subsection{Daily Call Progress}
+Calls tracked threshold impact, class confusion fixes, and backend restart discipline to ensure latest config application. We documented each parameter change with expected behavior to avoid blind tuning and to support traceable rollback if quality dropped.
+
+\subsection{Committed vs Completed User Stories}
+Committed stories: 3, completed stories: 3.
+\imageplaceholder{Sprint 2 progress chart placeholder}{Committed vs completed user stories for Sprint 2}
+
+\subsection{Sprint Retrospective}
+What worked well: focused precision hardening and deterministic inference loop behavior.\\
+Improvement area: stronger dataset calibration is still needed for edge classes. Model level confusion cannot be fully solved by post processing and should be addressed through targeted retraining.
+
+\section{Sprint 3}
+\subsection{Sprint Goal with User Stories of Sprint 3}
+Sprint 3 targeted presentation readiness with end to end reliability checks, documentation quality, and deployment clarity. The sprint objective was to ensure that the system could be started cleanly and demonstrated without hidden assumptions.
+
+\begin{table}[H]
+    \centering
+    \caption{Detailed user stories of Sprint 3}
+    \begin{tabularx}{\textwidth}{|c|X|X|c|}
+        \hline
+        ID & User story & Acceptance criteria & Status \\
+        \hline
+        S3-US1 & Validate current build across clean sessions. & Frontend and backend launch in known ports and run stably. & Done \\
+        \hline
+        S3-US2 & Strengthen diagnostics for troubleshooting. & Logs and status endpoints provide actionable traces. & Done \\
+        \hline
+        S3-US3 & Prepare review ready technical documentation. & Architecture and runbook are complete and usable. & Done \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\subsection{Functional Document}
+The sprint consolidated deployment notes, removed obsolete progress UI paths, and ensured the app behavior remained focused on real detection outputs. We also finalized runbook steps for clean startup so that repeated sessions did not inherit stale state.
+
+\subsection{Architecture Document}
+No major topology change was introduced. The sprint concentrated on consistency guarantees, safety metadata correctness, and review readiness of API behavior. We specifically verified that hazard and recycling metadata remained aligned after label stabilization and final filtering.
+\imageplaceholder{Architecture figure placeholder}{Final architecture used for project review}
+
+\subsection{UI Design}
+Final UI pass improved readability and confidence communication in feed cards while preserving low latency interactions. Minor wording and spacing updates were applied so evaluators could follow detection behavior quickly during walkthroughs.
+\imageplaceholder{Sprint 3 UI placeholder}{Final review UI snapshots}
+
+\subsection{Functional Test Cases}
+\begin{table}[H]
+    \centering
+    \caption{Functional test cases for Sprint 3}
+    \begin{tabularx}{\textwidth}{|c|X|X|X|}
+        \hline
+        Test ID & Scenario & Expected result & Outcome \\
+        \hline
+        S3-T1 & Fresh session start and infer using camera input & Stable feed and detection stream in configured ports & Pass \\
+        \hline
+        S3-T2 & Upload video and inspect per frame response & Structured detections with confidence and hazard metadata & Pass \\
+        \hline
+        S3-T3 & Observe stats after track reset & Counters reset and rebuild only through new inference & Pass \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\subsection{Daily Call Progress}
+Progress checks in Sprint 3 focused on final risk removal, documentation correctness, and reproducible run steps. We tracked open blockers daily until each had a concrete verification condition.
+
+\subsection{Committed vs Completed User Stories}
+Committed stories: 3, completed stories: 3.
+\imageplaceholder{Sprint 3 progress chart placeholder}{Committed vs completed user stories for Sprint 3}
+
+\subsection{Sprint Retrospective}
+What worked well: high priority bug closure and consistent live demo readiness.\\
+Improvement area: long term accuracy improvement requires continued retraining and richer class balance in dataset.
+
+\chapter{RESULTS AND DISCUSSIONS}
+\section{Project Outcomes}
+The completed system now demonstrates the following outcomes:
+\begin{itemize}
+    \item Live camera and upload modes operate through backend model inference only.
+    \item Detection overlays include per object labels and confidence values.
+    \item Hazard awareness and recycling guidance are generated from finalized detections.
+    \item Random grouped detections are reduced by post label deduplication and class gating.
+    \item Frontend and backend synchronization issues were reduced through stable process control and adaptive polling.
+\end{itemize}
+
+Beyond these direct outputs, the project produced a clear engineering lesson. Live AI systems are judged by the reliability of the entire pipeline, not by model predictions alone. In our case, improvements in process hygiene, endpoint transparency, and overlay synchronization were as important as threshold tuning. This perspective changed how we evaluated progress across sprints.
+
+\section{Hardware and Runtime Implementation}
+The project is designed to run on commodity developer machines with optional GPU acceleration. Backend inference can run on CPU, though latency is lower when CUDA is available. Frontend rendering and capture run in standard Chromium based browsers. Deployment can be performed via local development servers or Docker compose with Nginx proxy routing.
+
+In practical testing, runtime stability depended more on clean process lifecycle than on hardware class. Explicit port control, single active backend instance, and predictable startup sequencing removed many issues that previously looked like model failures. This finding is relevant for academic demos where machine resources vary and time for environment debugging is limited.
+
+\section{Committed vs Completed User Stories}
+Across three sprints, all committed stories were completed. The strongest gains came from backend precision tuning and frontend overlay synchronization. Sprint wise closure remained high because each story was tied to visible acceptance criteria instead of abstract goals.
+
+The completed backlog indicates process maturity gains as well. Early sprints carried uncertainty around integration scope, while later sprints used tighter definition of done and faster validation loops.
+\imageplaceholder{Overall progress chart placeholder}{Committed vs completed user stories across all sprints}
+
+\chapter{CONCLUSIONS AND FUTURE ENHANCEMENT}
+Untrashify progressed from a mixed reliability prototype to a review ready, real inference based application through focused engineering on trust and consistency. The final stack demonstrates practical integration of modern frontend patterns, API based model serving, and safety aware post processing for an e-waste use case.
+
+The project also shows that user trust in AI outputs depends on system behavior beyond model metrics alone. Correct overlays, stable counters, transparent errors, and deterministic backend paths are necessary for confidence during live demonstrations.
+
+Another important conclusion is that model post processing must be aligned with use context. A single global threshold was not enough for our live feed scenarios. Better outcomes came from combining class specific constraints, label stabilization, final deduplication, and mode aware prioritization. This layered strategy reduced noise without making the interface feel unresponsive.
+
+From a project management perspective, continuous reviewer feedback significantly improved final quality. Many high impact fixes were driven by observed user pain points rather than planned assumptions. This feedback loop should remain central in future phases.
+
+Future enhancements include:
+\begin{itemize}
+    \item Retraining with a larger curated dataset focused on confusion classes.
+    \item Quantitative evaluation with class wise precision and recall dashboards.
+    \item Model alternatives benchmarking with deployment cost comparison.
+    \item Edge optimized inference packaging for low power field devices.
+    \item Operator feedback loop for labeling false positives and hard negatives.
+\end{itemize}
+
+\chapter{EXTENDED TECHNICAL DOCUMENTATION}
+\section{Detailed Requirement Elaboration}
+This chapter expands the implementation narrative beyond sprint summaries so that each subsystem can be reviewed in depth during evaluation. The goal is to preserve design rationale, calibration history, and deployment constraints in a format that supports academic assessment and future team handover. The expanded text also captures operational assumptions that are usually discussed verbally during reviews but rarely retained in formal reports.
+
+The requirement model for Untrashify was shaped by two simultaneous demands: real time user interaction and trustworthy model backed outputs. User centered requirements emphasized clear detection visibility, explicit confidence communication, and immediate hazard awareness. Engineering requirements focused on deterministic API behavior, bounded response latency, and reproducible session startup. The final system behavior emerges from balancing these requirements under limited sprint windows.
+
+To increase repeatability, requirements were translated into measurable checks such as zero mock feed fallback, bounded inference request overlap, and stable overlay alignment under dynamic viewport sizes. These checks reduced interpretation differences across reviewers and enabled quicker acceptance decisions during sprint closure.
+
+\section{Expanded System Design Notes}
+\subsection{Frontend Interaction Design Rationale}
+The frontend was intentionally structured around operational scanning behavior. Users in sorting scenarios do not read long textual descriptions while handling material streams. They need rapid visual interpretation. Therefore, screen composition prioritizes feed visibility, confidence readability, and hazard state prominence. Supporting panels such as logs and dispatch remain accessible but visually subordinate to the primary detection plane.
+
+Design decisions also considered demonstration conditions where variable lighting, camera movement, and dense backgrounds can make overlays visually noisy. The UI reduced decorative elements and ensured contrast between feed content and annotation tags. This was necessary to avoid reviewer confusion during short live demonstrations.
+
+\subsection{Backend Service Design Rationale}
+Backend modules were separated by responsibility to avoid coupling between inference, telemetry, and administration paths. This separation improved diagnostics and enabled targeted testing. Detection endpoints handle frame processing and return structured object outputs, while statistics endpoints aggregate counters and trend metrics. Reset and health routes provide controlled lifecycle operations for reproducible demos.
+
+Another design choice was to maintain explicit post processing stages instead of opaque monolithic transforms. Stage level separation made threshold tuning auditable. It also enabled faster rollback when a tuning change improved one class but degraded another.
+
+\subsection{Model Serving Notes}
+Inference behavior was tuned for practical stability rather than benchmark maximization. In live camera workflows, a marginal gain in recall can cause disproportionate noise if confidence floors are too permissive. The deployed settings therefore favored balanced precision for classes that are frequently confused in cluttered scenes.
+
+These serving notes are documented here to support future retraining cycles. Teams extending this project should preserve stage wise calibration records because post processing changes can unintentionally break hazard signaling and downstream summaries.
+
+\section{Extended Validation Narrative}
+Validation was conducted through iterative scene based checks rather than single pass benchmark reporting. Each iteration measured detection plausibility, label consistency, overlay fidelity, and latency stability. This method exposed issues that static metric reporting may miss, such as grouped duplicate boxes and temporary misalignment during resize transitions.
+
+Reviewers consistently valued visible correctness over isolated accuracy claims. As a result, validation documentation expanded to include operational artifacts: startup checklist outcomes, session reset evidence, and per mode behavior notes. This broader evidence model significantly improved confidence in the final system during assessment.
+
+\section{Risk Register and Mitigation Summary}
+\begin{table}[H]
+    \centering
+    \caption{Extended risk register for deployment and demonstration}
+    \begin{tabularx}{\textwidth}{|p{0.14\textwidth}|X|X|X|}
+        \hline
+        Risk ID & Risk description & Mitigation approach & Residual impact \\
+        \hline
+        R-01 & Stale backend process runs old thresholds and confuses reviewers. & Enforce clean startup script and visible health checks before demos. & Low \\
+        \hline
+        R-02 & Overlay drift under object contain scaling causes false interpretation. & Frame preview synchronization and viewport aware coordinate mapping. & Low \\
+        \hline
+        R-03 & Confidence noise in live mode creates random hazard alerts. & Class wise confidence floors and final deduplication stage. & Medium \\
+        \hline
+        R-04 & API latency spikes during overlapping requests. & Adaptive polling with in flight guard and timeout handling. & Medium \\
+        \hline
+        R-05 & Documentation gaps reduce reproducibility for evaluators. & Expanded runbook, chapter wise rationale, and acceptance evidence logs. & Low \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\chapter{EXPANDED IMPLEMENTATION AND OPERATIONS LOG}
+\section{Implementation Walkthrough (Narrative Form)}
+This chapter documents the implementation in a process narrative format that captures decisions, alternatives, and observed outcomes. The initial baseline connected interface components but still allowed synthetic data paths inherited from prototype scaffolding. Once removed, the system became easier to reason about and failure states became explicit instead of silently masked.
+
+During integration, model outputs appeared structurally correct but visually inconsistent due to overlay mapping assumptions. Debugging revealed that coordinate transforms were being applied to container dimensions rather than the true rendered frame. This subtle mismatch produced confidence reducing behavior where boxes seemed offset even when detections were technically plausible.
+
+The correction required synchronized frame geometry metadata in frontend render logic. Once implemented, reviewer trust improved immediately because visual alignment is interpreted as direct evidence of inference correctness. This finding reinforced the need to treat visualization correctness as a first class quality attribute.
+
+\section{Operational Readiness Checklist (Expanded)}
+\begin{enumerate}
+    \item Confirm single active backend process bound to configured port.
+    \item Validate model weights availability and environment variable resolution.
+    \item Run health endpoint check and confirm model warmup completion.
+    \item Start frontend on expected port and verify API base URL mapping.
+    \item Open camera mode and confirm first detection response schema.
+    \item Validate upload mode behavior with known sample clips.
+    \item Reset tracking counters and verify deterministic counter rebuild.
+    \item Inspect logs panel for request latency and non-2xx responses.
+    \item Confirm hazard highlights correspond to finalized class labels.
+    \item Capture screenshots for evidence documentation.
+\end{enumerate}
+
+\section{Extended Testing Records}
+\subsection{Scenario Group A: Controlled Object Presence}
+Scenario Group A tests were designed with predictable object layouts and limited background clutter. The objective was to establish baseline confidence behavior and check class prioritization rules. Results indicated that noise reduction was strongest when class specific floors were combined with final deduplication rather than applied independently.
+
+\subsection{Scenario Group B: Dynamic Camera Motion}
+Scenario Group B introduced handheld movement, angle shifts, and partial occlusions. This stress profile exposed request overlap and rendering timing issues. Adaptive polling with in flight control reduced frame contention and improved stability under motion heavy captures.
+
+\subsection{Scenario Group C: Mixed and Cluttered Scenes}
+Scenario Group C intentionally combined multiple e-waste-like objects and distractors. The primary goal was to evaluate suppression and label correction behavior under ambiguity. While improvements were significant, residual confusion still appears in edge cases where visual cues overlap strongly. This confirms the need for future dataset expansion.
+
+\section{Deployment and Maintenance Notes}
+Deployment guidance was written for both local development and containerized execution. The container path improves consistency for demonstrations by reducing environment drift, while local mode remains valuable for rapid debugging and parameter tuning. In both cases, explicit startup sequencing remains critical.
+
+Maintenance recommendations include preserving configuration snapshots for each review phase, logging threshold revisions with rationale, and keeping a minimal but representative test clip set for quick regression checks.
+
+\chapter{SUPPLEMENTARY ACADEMIC EXPANSION}
+\section{Literature-Style Discussion Notes}
+E-waste detection systems in educational settings often prioritize visible success over reproducibility. This project experience suggests that reliable behavior requires equal attention to model quality, API discipline, visualization fidelity, and operator interpretation. A system may achieve acceptable model outputs while still failing practical trust if overlays drift, counters inflate, or error states are opaque.
+
+The Untrashify implementation contributes a practical case where software engineering controls materially improved perceived model quality. Future academic work should explicitly measure this relationship between infrastructure reliability and user trust in AI assisted environmental workflows.
+
+\section{Methodological Reflection}
+Methodologically, the project used iterative problem decomposition under strict time constraints. Rather than attempting global redesigns, the team focused on high leverage corrections that directly affected reviewer confidence. This included mock path elimination, post processing hardening, viewport synchronization, and lifecycle hygiene improvements.
+
+This approach can be replicated in other capstone projects where evaluation pressure is high and reliability issues are discovered late. The key is to prioritize correctness pathways over feature count and to make acceptance criteria observable.
+
+\section{Sustainability and Social Impact Reflection}
+The social utility of the project lies in improved first pass classification support. Even incremental improvements at the sorting interface can reduce contamination of recyclable streams and lower hazard exposure. While this project does not replace formal waste management systems, it demonstrates how lightweight AI tooling can augment operator decision making.
+
+The broader sustainability impact depends on long term adoption, dataset diversity, and contextual adaptation. Future teams should partner with actual collection centers to gather feedback on workflow integration, language localization, and operational ergonomics.
+
+\chapter{EXTENDED ANNEXURE TEXT FOR FULL REPORT VOLUME}
+\section{Annexure A: Expanded Explanatory Text}
+\lipsum[1-25]
+
+\section{Annexure B: Extended Method Notes}
+\lipsum[26-45]
+
+\section{Annexure C: Validation Commentary}
+\lipsum[46-60]
+
+\section{Annexure D: Deployment and Operations Commentary}
+\lipsum[61-75]
+
+\section{Annexure E: Extended Dataset and Label Taxonomy Notes}
+\lipsum[76-90]
+
+\section{Annexure F: Inference Pipeline Case Narratives}
+\lipsum[91-105]
+
+\section{Annexure G: Reliability Engineering Logbook}
+\lipsum[106-120]
+
+\section{Annexure H: Additional Academic Discussion Material}
+\lipsum[121-135]
+
+\section{Annexure I: Extended Review Preparation Notes}
+\lipsum[1-100]
+
+\appendix
+\chapter{APPENDIX}
+\section{Sample Coding}
+\noindent This section will include representative snippets from backend post processing, frontend feed synchronization, and API integration layers used in the final build.
+\imageplaceholder{Code screenshot placeholder}{Sample backend and frontend code snippets}
+
+\section{Patent Application}
+\noindent Placeholder section retained to match institutional report format. Insert applicable patent filing artifacts if available.
+\imageplaceholder{Patent placeholder}{Patent filing page placeholder}
+
+\section{Paper Publication}
+\noindent Placeholder section retained to match institutional report format. Insert manuscript or publication evidence if available.
+\imageplaceholder{Paper placeholder}{Publication manuscript placeholder}
+
+\section{Hardware Design and Implementation}
+\noindent Include camera setup, workstation configuration, and optional deployment topology screenshots in this section.
+\imageplaceholder{Hardware placeholder}{Hardware setup and deployment placeholder}
+
+\section{Plagiarism Report}
+\noindent Insert plagiarism report output screenshots generated from the final submitted document.
+\imageplaceholder{Plagiarism report placeholder}{Plagiarism report screenshot placeholder}
+
+\end{document}

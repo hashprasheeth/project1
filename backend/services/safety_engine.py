@@ -1,6 +1,7 @@
 import itertools
 import numpy as np
 from backend.core.config import settings
+from backend.core.debug_log import debug_log
 from backend.core.logger import logger
 
 
@@ -77,6 +78,103 @@ def _nms(boxes: np.ndarray, scores: np.ndarray, iou_threshold: float = 0.5) -> n
 
     return np.array(keep, dtype=np.int64)
 
+def _batched_nms(
+    boxes: np.ndarray, scores: np.ndarray, class_ids: np.ndarray, iou_threshold: float = 0.5
+) -> np.ndarray:
+    """Run NMS per class, then merge by score descending."""
+    keep_all = []
+    for cid in np.unique(class_ids):
+        cls_idx = np.where(class_ids == cid)[0]
+        if cls_idx.size == 0:
+            continue
+        cls_keep_local = _nms(boxes[cls_idx], scores[cls_idx], iou_threshold)
+        keep_all.extend(cls_idx[cls_keep_local].tolist())
+    if not keep_all:
+        return np.array([], dtype=np.int64)
+    keep_arr = np.array(keep_all, dtype=np.int64)
+    order = np.argsort(scores[keep_arr])[::-1]
+    return keep_arr[order]
+
+
+def _dedupe_final_detections(detections: list[dict], iou_threshold: float) -> list[dict]:
+    """Run one more NMS pass after final labels are decided."""
+    if len(detections) <= 1:
+        return detections
+
+    label_ids: dict[str, int] = {}
+    boxes = []
+    scores = []
+    class_ids = []
+    for det in detections:
+        x1, y1, x2, y2 = det["bbox"]
+        label = str(det["label"])
+        if label not in label_ids:
+            label_ids[label] = len(label_ids)
+        boxes.append([x1, y1, x2, y2])
+        scores.append(float(det["confidence"]))
+        class_ids.append(label_ids[label])
+
+    keep = _batched_nms(
+        np.asarray(boxes, dtype=np.float32),
+        np.asarray(scores, dtype=np.float32),
+        np.asarray(class_ids, dtype=np.int64),
+        iou_threshold=iou_threshold,
+    )
+    return [detections[int(idx)] for idx in keep]
+
+
+def _apply_demo_label_corrections(
+    label: str,
+    width: float,
+    height: float,
+    frame_area: float,
+) -> str:
+    """
+    Presentation-specific correction layer for the currently allowed demo objects.
+    This is intentionally conservative and only rewrites a few known confusion cases.
+    """
+    area_ratio = (width * height) / max(frame_area, 1.0)
+    aspect_ratio = width / max(height, 1e-6)
+
+    # Batteries are often confused with compact rectangular electronics.
+    # Only remap to battery for very small objects, never to PCB.
+    if label in {"SSD", "Power-Adapter"}:
+        if area_ratio <= 0.03 and 0.35 <= aspect_ratio <= 4.5:
+            return "Battery"
+        return "Electronic-Waste"
+
+    # For the presentation, all CRT/display-family hits should resolve to CRT-TV.
+    if label in {"CRT-Monitor", "Flat-Panel-TV", "Flat-Panel-Monitor"}:
+        return "CRT-TV"
+
+    return label
+
+
+def _apply_phone_priority(detections: list[dict]) -> list[dict]:
+    """
+    If a confident phone is present, keep phone detections and only very confident
+    non-phone boxes. This reduces random live-camera boxes.
+    """
+    if not settings.PHONE_PRIORITY_ENABLED or not detections:
+        return detections
+
+    phone_label = settings.PHONE_PRIORITY_CLASS
+    has_confident_phone = any(
+        str(d.get("label")) == phone_label
+        and float(d.get("confidence", 0.0)) >= settings.PHONE_PRIORITY_MIN_CONFIDENCE
+        for d in detections
+    )
+    if not has_confident_phone:
+        return detections
+
+    kept: list[dict] = []
+    for det in detections:
+        label = str(det.get("label"))
+        score = float(det.get("confidence", 0.0))
+        if label == phone_label or score >= settings.PHONE_PRIORITY_OTHER_MIN_CONFIDENCE:
+            kept.append(det)
+    return kept
+
 
 class SafetyEngine:
     HAZARDOUS_ITEMS = {
@@ -107,9 +205,9 @@ class SafetyEngine:
         Returns:
             (boxes, detected_classes, is_hazardous)
         """
-        threshold = settings.HAZARDOUS_THRESHOLD
+        threshold = settings.DETECTION_CONFIDENCE_THRESHOLD
         iou_threshold = 0.5
-        max_detections = 20
+        max_detections = 50
         input_shape = raw_output.get("_input_shape", (1, 3, 512, 512))
         meta = raw_output.get("_meta", (512, 512, 512, 512))
         input_size = input_shape[2]
@@ -150,7 +248,14 @@ class SafetyEngine:
         reg = regression[0]  # [N, 4]
         cls = classification[0]  # [N, num_classes]
 
-        cls_scores = 1.0 / (1.0 + np.exp(-np.clip(cls, -50, 50)))
+        # Some EfficientDet exports already return probabilities in [0, 1].
+        # Apply sigmoid only when outputs look like logits.
+        cls_min = float(np.min(cls))
+        cls_max = float(np.max(cls))
+        if cls_min >= 0.0 and cls_max <= 1.0:
+            cls_scores = cls
+        else:
+            cls_scores = 1.0 / (1.0 + np.exp(-np.clip(cls, -50, 50)))
 
         if model_anchors is not None:
             anc = model_anchors[0] if model_anchors.ndim == 3 else model_anchors
@@ -169,14 +274,40 @@ class SafetyEngine:
 
         decoded = _decode_boxes(anchors, reg)
 
-        decoded[:, 0] = np.clip(decoded[:, 0], 0, input_size - 1)
-        decoded[:, 1] = np.clip(decoded[:, 1], 0, input_size - 1)
-        decoded[:, 2] = np.clip(decoded[:, 2], 0, input_size - 1)
-        decoded[:, 3] = np.clip(decoded[:, 3], 0, input_size - 1)
+        new_w, new_h, orig_w, orig_h = meta
+        # Clip in resized-image space (not padded canvas space) to avoid off-frame boxes.
+        decoded[:, 0] = np.clip(decoded[:, 0], 0, new_w - 1)
+        decoded[:, 1] = np.clip(decoded[:, 1], 0, new_h - 1)
+        decoded[:, 2] = np.clip(decoded[:, 2], 0, new_w - 1)
+        decoded[:, 3] = np.clip(decoded[:, 3], 0, new_h - 1)
 
         max_scores = cls_scores.max(axis=1)
         mask = max_scores > threshold
+        used_fallback = False
+        if settings.DETECTION_ENABLE_FALLBACK and not mask.any():
+            # Fallback path: keep top-K predictions above a low floor
+            # to avoid hard-zero output when the scene is ambiguous.
+            fallback_floor = settings.DETECTION_FALLBACK_MIN_CONFIDENCE
+            candidate_idx = np.where(max_scores >= fallback_floor)[0]
+            if candidate_idx.size > 0:
+                order = candidate_idx[np.argsort(max_scores[candidate_idx])[::-1]]
+                keep_idx = order[: max(1, settings.DETECTION_FALLBACK_TOP_K)]
+                mask = np.zeros_like(max_scores, dtype=bool)
+                mask[keep_idx] = True
+                used_fallback = True
         if not mask.any():
+            debug_log(
+                "safety_engine.py:analyze",
+                "detection_filter_summary",
+                {
+                    "threshold": threshold,
+                    "min_detection_area_ratio": settings.MIN_DETECTION_AREA_RATIO,
+                    "max_score_observed": round(float(max_scores.max(initial=0.0)), 4),
+                    "used_fallback": used_fallback,
+                    "skipped_small_boxes": 0,
+                    "final_detections": 0,
+                },
+            )
             return [], [], False
 
         filtered_boxes = decoded[mask]
@@ -184,15 +315,15 @@ class SafetyEngine:
         filtered_max_scores = max_scores[mask]
         class_ids = filtered_cls.argmax(axis=1)
 
-        keep = _nms(filtered_boxes, filtered_max_scores, iou_threshold)
+        keep = _batched_nms(filtered_boxes, filtered_max_scores, class_ids, iou_threshold)
         if len(keep) > max_detections:
             keep = keep[:max_detections]
 
         final_boxes = filtered_boxes[keep]
         final_scores = filtered_max_scores[keep]
         final_class_ids = class_ids[keep]
+        final_class_probs = filtered_cls[keep]
 
-        new_w, new_h, orig_w, orig_h = meta
         scale_x = orig_w / new_w
         scale_y = orig_h / new_h
 
@@ -200,35 +331,92 @@ class SafetyEngine:
         detections = []
         detected_class_names = set()
         is_hazardous = False
+        min_area = settings.MIN_DETECTION_AREA_RATIO * float(orig_w * orig_h)
+        skipped_small_boxes = 0
+        skipped_generic_ewaste_boxes = 0
+        skipped_disallowed_classes = 0
+        skipped_low_class_confidence = 0
+        skipped_low_margin = 0
+        allowed_classes = set(settings.ALLOWED_DETECTION_CLASSES)
 
         for i in range(len(final_boxes)):
             cid = int(final_class_ids[i])
             label = class_map.get(cid, f"class_{cid}")
             score = float(final_scores[i])
 
+            top2 = np.partition(final_class_probs[i], -2)[-2:]
+            margin = float(top2[-1] - top2[-2])
+            if margin < settings.DETECTION_MIN_CLASS_MARGIN:
+                if settings.COLLAPSE_AMBIGUOUS_TO_EWASTE:
+                    label = "Electronic-Waste"
+                else:
+                    skipped_low_margin += 1
+                    continue
+
             x1 = float(final_boxes[i, 0]) * scale_x
             y1 = float(final_boxes[i, 1]) * scale_y
             x2 = float(final_boxes[i, 2]) * scale_x
             y2 = float(final_boxes[i, 3]) * scale_y
+            width = max(0.0, x2 - x1)
+            height = max(0.0, y2 - y1)
+            area = width * height
+            if area < min_area:
+                skipped_small_boxes += 1
+                continue
 
-            hazardous = label in SafetyEngine.HAZARDOUS_ITEMS
-            if hazardous:
-                is_hazardous = True
+            label = _apply_demo_label_corrections(
+                label=label,
+                width=width,
+                height=height,
+                frame_area=float(orig_w * orig_h),
+            )
 
-            detected_class_names.add(label)
+            if settings.ENABLE_ALLOWED_CLASS_FILTER and label not in allowed_classes:
+                skipped_disallowed_classes += 1
+                continue
+
+            if settings.ENABLE_CLASS_CONFIDENCE_FLOOR:
+                class_floor = settings.CLASS_CONFIDENCE_FLOOR.get(
+                    label, settings.DEFAULT_CLASS_CONFIDENCE_FLOOR
+                )
+                if score < class_floor:
+                    skipped_low_class_confidence += 1
+                    continue
+
+            if label == "Electronic-Waste":
+                max_generic_area = settings.GENERIC_EWASTE_MAX_AREA_RATIO * float(orig_w * orig_h)
+                aspect_ratio = (height / max(width, 1e-6)) if width > 0 else 999.0
+                if area > max_generic_area or aspect_ratio > settings.GENERIC_EWASTE_MAX_ASPECT_RATIO:
+                    skipped_generic_ewaste_boxes += 1
+                    continue
+
             detections.append({
                 "label": label,
                 "confidence": round(score, 4),
                 "bbox": [round(x1, 1), round(y1, 1), round(x2, 1), round(y2, 1)],
+                "_orig_w": int(orig_w),
+                "_orig_h": int(orig_h),
             })
 
+        detections = _dedupe_final_detections(detections, settings.FINAL_LABEL_NMS_IOU)
+        detections = _apply_phone_priority(detections)
+        detected_class_names = {str(d["label"]) for d in detections}
+        is_hazardous = any(str(d["label"]) in SafetyEngine.HAZARDOUS_ITEMS for d in detections)
+
+        debug_log(
+            "safety_engine.py:analyze",
+            "detection_filter_summary",
+            {
+                "threshold": threshold,
+                "min_detection_area_ratio": settings.MIN_DETECTION_AREA_RATIO,
+                "used_fallback": used_fallback,
+                "skipped_small_boxes": skipped_small_boxes,
+                "skipped_generic_ewaste_boxes": skipped_generic_ewaste_boxes,
+                "skipped_disallowed_classes": skipped_disallowed_classes,
+                "skipped_low_class_confidence": skipped_low_class_confidence,
+                "skipped_low_margin": skipped_low_margin,
+                "final_detections": len(detections),
+            },
+        )
         return detections, list(detected_class_names), is_hazardous
 
-    @staticmethod
-    def check_safety(detected_label: str, confidence: float) -> dict:
-        is_hazardous = detected_label in SafetyEngine.HAZARDOUS_ITEMS
-        return {
-            "is_hazardous": is_hazardous,
-            "recycling_tip": "HAZARD: Handle with care" if is_hazardous else "General E-Waste Recycling",
-            "confidence": confidence,
-        }

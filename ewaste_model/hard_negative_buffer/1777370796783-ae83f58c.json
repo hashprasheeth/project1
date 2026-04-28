@@ -1,0 +1,96 @@
+{
+  "sample_id": "1777370796783-ae83f58c",
+  "captured_at": 1777370796784,
+  "frame_number": 347,
+  "processing_time_ms": 186.54,
+  "content_type": "image/jpeg",
+  "total_items": 5,
+  "detected_classes": [
+    "Electronic-Waste",
+    "PCB"
+  ],
+  "is_hazardous": true,
+  "detections": [
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9794,
+      "bbox": [
+        0.0,
+        663.2,
+        1277.5,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9761,
+      "bbox": [
+        594.6,
+        472.9,
+        1110.5,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9652,
+      "bbox": [
+        417.2,
+        493.6,
+        654.4,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9498,
+      "bbox": [
+        103.8,
+        412.0,
+        451.5,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "PCB",
+      "confidence": 0.9124,
+      "bbox": [
+        615.2,
+        611.9,
+        707.4,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "hazardous",
+      "recycling_tip": "\u26a0\ufe0f HAZARDOUS: Dispose at specialized hazardous waste facility only"
+    }
+  ],
+  "capture_reason": {
+    "zero_detections": false,
+    "generic_ewaste_count": 4,
+    "low_confidence_count": 0
+  },
+  "image_file": "1777370796783-ae83f58c.jpg"
+}

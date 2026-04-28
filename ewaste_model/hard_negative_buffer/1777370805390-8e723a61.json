@@ -1,0 +1,111 @@
+{
+  "sample_id": "1777370805390-8e723a61",
+  "captured_at": 1777370805390,
+  "frame_number": 357,
+  "processing_time_ms": 187.05,
+  "content_type": "image/jpeg",
+  "total_items": 6,
+  "detected_classes": [
+    "Electronic-Waste",
+    "PCB"
+  ],
+  "is_hazardous": true,
+  "detections": [
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.983,
+      "bbox": [
+        589.4,
+        502.2,
+        1096.7,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9827,
+      "bbox": [
+        0.0,
+        673.3,
+        1277.5,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9747,
+      "bbox": [
+        411.3,
+        493.9,
+        645.8,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9634,
+      "bbox": [
+        560.4,
+        611.0,
+        669.8,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.957,
+      "bbox": [
+        102.9,
+        424.9,
+        452.1,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "PCB",
+      "confidence": 0.9297,
+      "bbox": [
+        634.6,
+        611.9,
+        723.2,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "hazardous",
+      "recycling_tip": "\u26a0\ufe0f HAZARDOUS: Dispose at specialized hazardous waste facility only"
+    }
+  ],
+  "capture_reason": {
+    "zero_detections": false,
+    "generic_ewaste_count": 5,
+    "low_confidence_count": 0
+  },
+  "image_file": "1777370805390-8e723a61.jpg"
+}

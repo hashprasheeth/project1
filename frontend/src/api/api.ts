@@ -4,10 +4,25 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
 
 let detectionIdCounter = 0;
 
+function clamp01(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
+}
+
 function mapBackendDetection(det: Record<string, unknown>, frameNumber: number): Detection {
   const bbox = det.bbox as number[];
   const origW = (det._orig_w as number) || 640;
   const origH = (det._orig_h as number) || 480;
+  const x1 = (bbox?.[0] ?? 0) / origW;
+  const y1 = (bbox?.[1] ?? 0) / origH;
+  const x2 = (bbox?.[2] ?? 0) / origW;
+  const y2 = (bbox?.[3] ?? 0) / origH;
+  const nx1 = clamp01(Math.min(x1, x2));
+  const ny1 = clamp01(Math.min(y1, y2));
+  const nx2 = clamp01(Math.max(x1, x2));
+  const ny2 = clamp01(Math.max(y1, y2));
 
   return {
     id: `#${(++detectionIdCounter).toString(16).toUpperCase().padStart(4, '0')}`,
@@ -16,10 +31,10 @@ function mapBackendDetection(det: Record<string, unknown>, frameNumber: number):
     hazardous: (det.hazardous as boolean) || false,
     recyclingBin: (det.recycling_bin as string) || 'E-Waste',
     bbox: {
-      x: (bbox?.[0] ?? 0) / origW,
-      y: (bbox?.[1] ?? 0) / origH,
-      w: ((bbox?.[2] ?? 0) - (bbox?.[0] ?? 0)) / origW,
-      h: ((bbox?.[3] ?? 0) - (bbox?.[1] ?? 0)) / origH,
+      x: nx1,
+      y: ny1,
+      w: clamp01(nx2 - nx1),
+      h: clamp01(ny2 - ny1),
     },
     timestamp: new Date().toLocaleTimeString('en-GB', { hour12: false }),
     frameNumber,
@@ -84,20 +99,16 @@ export async function fetchDetections(imageBlob?: Blob): Promise<Detection[]> {
   const formData = new FormData();
   formData.append('file', imageBlob, 'frame.jpg');
 
-  try {
-    const res = await fetch(`${API_BASE}/detect`, { method: 'POST', body: formData });
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      throw new Error(`Detection API error ${res.status}: ${text}`);
-    }
-    const data = await res.json();
-    const detections = (data.detections || []) as Record<string, unknown>[];
-    const frameNumber = (data.frame_number as number) || 0;
-    return detections.map((d) => mapBackendDetection(d, frameNumber));
-  } catch (err) {
-    console.warn('[detect] Backend unreachable:', err);
-    return [];
+  const res = await fetch(`${API_BASE}/detect`, { method: 'POST', body: formData });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Detection API error ${res.status}: ${text || 'no response body'}`);
   }
+
+  const data = await res.json();
+  const detections = (data.detections || []) as Record<string, unknown>[];
+  const frameNumber = (data.frame_number as number) || 0;
+  return detections.map((d) => mapBackendDetection(d, frameNumber));
 }
 
 export async function fetchStats(): Promise<Stats> {

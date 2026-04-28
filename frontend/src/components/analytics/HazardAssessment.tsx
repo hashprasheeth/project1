@@ -1,5 +1,4 @@
 import { Progress } from '@/components/ui/progress';
-import type { Stats } from '@/data/types';
 
 interface HazardAssessmentProps {
   readonly hazardRate: number;

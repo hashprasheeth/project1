@@ -1,0 +1,17 @@
+{
+  "sample_id": "1777366918218-b76f1987",
+  "captured_at": 1777366918220,
+  "frame_number": 169,
+  "processing_time_ms": 93.45,
+  "content_type": "image/jpeg",
+  "total_items": 0,
+  "detected_classes": [],
+  "is_hazardous": false,
+  "detections": [],
+  "capture_reason": {
+    "zero_detections": true,
+    "generic_ewaste_count": 0,
+    "low_confidence_count": 0
+  },
+  "image_file": "1777366918218-b76f1987.jpg"
+}

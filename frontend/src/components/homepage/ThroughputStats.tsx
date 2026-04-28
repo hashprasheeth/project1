@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { useStats } from '@/hooks/useStats';
+import { sendDebugLog } from '@/utils/debugLog';
 
 export default function ThroughputStats() {
   const { stats } = useStats(3000);
@@ -8,6 +10,18 @@ export default function ThroughputStats() {
   const recycledMassKg = Math.round(stats.totalDetections * 0.67);
   const processedPct = Math.min(100, Math.round((stats.totalFrames / 1000) * 100));
   const recycledPct = Math.min(100, Math.round((recycledMassKg / 1500) * 100));
+
+  useEffect(() => {
+    sendDebugLog({
+      location: 'ThroughputStats.tsx',
+      message: 'throughput_snapshot',
+      data: {
+        totalFrames: stats.totalFrames,
+        totalDetections: stats.totalDetections,
+        hazardousCount: stats.hazardousCount,
+      },
+    });
+  }, [stats.totalFrames, stats.totalDetections, stats.hazardousCount]);
 
   return (
     <div className="p-4 flex-1">

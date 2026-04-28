@@ -112,14 +112,3 @@ export const RECYCLING_BINS: readonly RecyclingBin[] = [
   'Plastic Sorting',
 ] as const;
 
-export function getHazardousClasses(): readonly EwasteClass[] {
-  return EWASTE_CLASSES.filter((c) => c.hazardous);
-}
-
-export function getSafeClasses(): readonly EwasteClass[] {
-  return EWASTE_CLASSES.filter((c) => !c.hazardous);
-}
-
-export function getClassesByBin(bin: RecyclingBin): readonly EwasteClass[] {
-  return EWASTE_CLASSES.filter((c) => c.recyclingBin === bin);
-}

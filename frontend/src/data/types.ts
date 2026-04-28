@@ -9,6 +9,12 @@ export interface Detection {
   readonly frameNumber: number;
 }
 
+export interface CapturedFramePreview {
+  readonly imageUrl: string;
+  readonly width: number;
+  readonly height: number;
+}
+
 export interface Stats {
   readonly totalFrames: number;
   readonly totalDetections: number;

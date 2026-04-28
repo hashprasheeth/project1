@@ -1,0 +1,17 @@
+{
+  "sample_id": "1777367880349-a03085e7",
+  "captured_at": 1777367880350,
+  "frame_number": 144,
+  "processing_time_ms": 173.67,
+  "content_type": "image/jpeg",
+  "total_items": 0,
+  "detected_classes": [],
+  "is_hazardous": false,
+  "detections": [],
+  "capture_reason": {
+    "zero_detections": true,
+    "generic_ewaste_count": 0,
+    "low_confidence_count": 0
+  },
+  "image_file": "1777367880349-a03085e7.jpg"
+}

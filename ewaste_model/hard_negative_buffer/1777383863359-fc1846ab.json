@@ -1,0 +1,17 @@
+{
+  "sample_id": "1777383863359-fc1846ab",
+  "captured_at": 1777383863360,
+  "frame_number": 669,
+  "processing_time_ms": 298.94,
+  "content_type": "image/jpeg",
+  "total_items": 0,
+  "detected_classes": [],
+  "is_hazardous": false,
+  "detections": [],
+  "capture_reason": {
+    "zero_detections": true,
+    "generic_ewaste_count": 0,
+    "low_confidence_count": 0
+  },
+  "image_file": "1777383863359-fc1846ab.jpg"
+}

@@ -22,7 +22,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center gap-2 text-primary/60 text-xs font-mono uppercase tracking-widest">
               <span className="material-symbols-outlined text-[16px]">radar</span>
               <span>System Status: {health.systemOnline ? 'Online' : 'Offline'}</span>
-              <span>//</span>
+              <span>|</span>
               <span>Latency: {health.latencyMs}ms</span>
             </div>
             <h1 className="text-white tracking-tight text-3xl md:text-4xl font-bold uppercase font-display">

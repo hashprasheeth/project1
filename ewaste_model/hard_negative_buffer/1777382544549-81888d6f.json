@@ -1,0 +1,112 @@
+{
+  "sample_id": "1777382544549-81888d6f",
+  "captured_at": 1777382544550,
+  "frame_number": 1304,
+  "processing_time_ms": 164.18,
+  "content_type": "image/jpeg",
+  "total_items": 6,
+  "detected_classes": [
+    "Battery",
+    "Electronic-Waste",
+    "CRT-TV"
+  ],
+  "is_hazardous": true,
+  "detections": [
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9946,
+      "bbox": [
+        459.8,
+        706.0,
+        683.0,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9931,
+      "bbox": [
+        289.1,
+        662.2,
+        484.0,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "CRT-TV",
+      "confidence": 0.9699,
+      "bbox": [
+        0.0,
+        125.2,
+        843.2,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "hazardous",
+      "recycling_tip": "\u26a0\ufe0f HAZARDOUS: Dispose at specialized hazardous waste facility only"
+    },
+    {
+      "label": "CRT-TV",
+      "confidence": 0.9683,
+      "bbox": [
+        732.5,
+        0.0,
+        1277.5,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "hazardous",
+      "recycling_tip": "\u26a0\ufe0f HAZARDOUS: Dispose at specialized hazardous waste facility only"
+    },
+    {
+      "label": "Electronic-Waste",
+      "confidence": 0.9655,
+      "bbox": [
+        429.0,
+        656.1,
+        1028.5,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "electronics",
+      "recycling_tip": "\u267b\ufe0f Dispose at certified e-waste recycling facility"
+    },
+    {
+      "label": "CRT-TV",
+      "confidence": 0.9593,
+      "bbox": [
+        228.9,
+        434.8,
+        1018.7,
+        717.5
+      ],
+      "_orig_w": 1280,
+      "_orig_h": 720,
+      "hazardous": true,
+      "recycling_bin": "hazardous",
+      "recycling_tip": "\u26a0\ufe0f HAZARDOUS: Dispose at specialized hazardous waste facility only"
+    }
+  ],
+  "capture_reason": {
+    "zero_detections": false,
+    "generic_ewaste_count": 3,
+    "low_confidence_count": 0
+  },
+  "image_file": "1777382544549-81888d6f.jpg"
+}

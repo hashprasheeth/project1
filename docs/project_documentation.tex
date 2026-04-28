@@ -1,0 +1,509 @@
+% =============================================================================
+% Untrashify — E-Waste Detection System
+% Comprehensive technical documentation: problem, solution, tech stack,
+% training, dataset, model, code explanation, and project structure.
+% Based on the current project codebase.
+% =============================================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% -----------------------------------------------------------------------------
+% Packages
+% -----------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{tocloft}
+\usepackage{parskip}
+
+\geometry{margin=2.5cm}
+
+% -----------------------------------------------------------------------------
+% Code listing style
+% -----------------------------------------------------------------------------
+\definecolor{codegreen}{rgb}{0.2,0.6,0.2}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.96}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codepurple}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{orange},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    rulecolor=\color{black!20},
+}
+
+\lstset{style=mystyle}
+
+% -----------------------------------------------------------------------------
+% Hyperref setup
+% -----------------------------------------------------------------------------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue,
+}
+
+% -----------------------------------------------------------------------------
+% Document
+% -----------------------------------------------------------------------------
+\begin{document}
+
+% =============================================================================
+% Title Page
+% =============================================================================
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+    {\LARGE\bfseries Untrashify}\\[0.5cm]
+    {\LARGE E-Waste Detection System}\\[0.3cm]
+    {\large (Project Antigravity)}\\[1.5cm]
+    {\large A comprehensive technical document}\\[2cm]
+    \vfill
+    {\large Author name}\\[0.3cm]
+    {\footnotesize (Replace with your name)}\\[0.5cm]
+    \vfill
+    {\small \today}
+\end{titlepage}
+
+% =============================================================================
+% Table of Contents
+% =============================================================================
+\tableofcontents
+\newpage
+
+% =============================================================================
+% 1. Problem Statement
+% =============================================================================
+\section{Problem Statement}
+\label{sec:problem}
+
+Electronic waste (e-waste) is one of the fastest-growing waste streams globally. Proper identification and classification of e-waste is critical for:
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Recycling and resource recovery}: Different categories require different recycling pathways (e.g., circuit boards vs.\ displays).
+    \item \textbf{Safety}: Many items are hazardous (lithium batteries, CRTs, mercury-containing lamps) and must be flagged for specialized handling.
+    \item \textbf{Automation}: Manual sorting is slow, error-prone, and expensive; automated detection can improve throughput and consistency.
+\end{itemize}
+
+\subsection{Core Problem}
+
+\begin{quote}
+    \textit{How can we automatically detect and classify a wide variety of electronic waste items in images (e.g., from conveyor belts or collection points), distinguish hazardous from non-hazardous items, and provide recycling and safety guidance in real time?}
+\end{quote}
+
+\subsection{Challenges}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Scale}: Dozens of e-waste categories (78 in this project) with varying visual appearance.
+    \item \textbf{Similarity}: Some classes overlap visually (e.g., different phone types, similar appliances).
+    \item \textbf{Environment}: Varying lighting, occlusion, and background clutter in real-world settings.
+    \item \textbf{Latency}: Production systems need fast inference for real-time conveyor or camera feeds.
+\end{itemize}
+
+% =============================================================================
+% 2. Solution
+% =============================================================================
+\section{Solution}
+\label{sec:solution}
+
+The project implements an \textbf{AI-powered e-waste detection and classification platform} with the following design choices:
+
+\subsection{Object Detection}
+
+Images may contain multiple items; an object detector (EfficientDet) localises and classifies each instance with bounding boxes, rather than a single-class image classifier.
+
+\subsection{78-Class Taxonomy}
+
+The system recognises 78 e-waste categories defined in \texttt{class\_labels.json}, including:
+\begin{itemize}[noitemsep]
+    \item \textbf{Hazardous (35 classes)}: Battery, CRT-Monitor, CRT-TV, PCB, Smoke-Detector, Compact-Fluorescent-Lamps, Air-Conditioner, Boiler, Laptop, Smartphone, Tablet, HDD, SSD, Refrigerator, Photovoltaic-Panel, Drone, Electric-Bicycle, Microwave, Printer, Projector, and others.
+    \item \textbf{Non-hazardous (43 classes)}: Bar-Phone, Calculator, Camera, Computer-Keyboard, Computer-Mouse, Router, Speaker, USB-Flash-Drive, Ceiling-Fan, Coffee-Machine, etc.
+\end{itemize}
+
+\subsection{Hazardous-Material Awareness}
+
+A configurable list of hazardous classes (e.g., \texttt{Battery}, \texttt{CRT-Monitor}, \texttt{PCB}) is used to flag detections above a confidence threshold (\texttt{HAZARDOUS\_THRESHOLD} default 0.85, or 0.40 in Docker). This enables safety interlocks and alerts in the dashboard.
+
+\subsection{PyTorch Inference}
+
+The backend loads the EfficientDet model directly from a \texttt{.pth} checkpoint. No Triton or ONNX runtime is required for inference. The model runs on CPU or GPU (CUDA when available).
+
+\subsection{End-to-End Application}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Backend}: FastAPI with \texttt{/detect}, \texttt{/stats}, \texttt{/health}, \texttt{/logs}, \texttt{/dispatch}, \texttt{/recycling-info}, \texttt{/track/reset}.
+    \item \textbf{Frontend}: React SPA with live webcam/video detection, analytics, and class explorer.
+\end{itemize}
+
+\subsection{Production Features}
+
+Rate limiting (60/min on detect), file type validation (JPEG, PNG, WebP; MIME + magic bytes), security headers (X-Content-Type-Options, X-Frame-Options, etc.), structured JSON logging, and health checks are included.
+
+% =============================================================================
+% 3. Tech Stack and Tools
+% =============================================================================
+\section{Tech Stack and Tools}
+\label{sec:techstack}
+
+Table~\ref{tab:techstack} summarises the main technologies and tools used in the project.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Technology stack overview.}
+    \label{tab:techstack}
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Component} & \textbf{Technologies} \\
+        \midrule
+        Backend & FastAPI, Python 3.10+ \\
+        Inference & PyTorch (EfficientDetBackbone), OpenCV \\
+        Frontend & React, Vite, TypeScript, TailwindCSS \\
+        Model & EfficientDet-D0 (78 classes, input 512$\times$512) \\
+        Training & PyTorch, Yet-Another-EfficientDet-Pytorch, Roboflow \\
+        Dataset & Roboflow (COCO format), E-Waste Dataset v44 \\
+        Deployment & Docker, Docker Compose \\
+        Observability & Structured JSON logging, health endpoints, request IDs \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Backend}
+
+FastAPI provides async request handling, automatic OpenAPI documentation, and CORS/security middleware. The inference service (\texttt{onnx\_inference.py}) loads the PyTorch EfficientDet backbone and checkpoint from \texttt{ewaste\_model/checkpoints/}.
+
+\subsection{Frontend}
+
+React with Vite for fast builds and hot reload. TailwindCSS for styling. Lazy-loaded routes: HomePage (live detection), AnalyticsPage (statistics), ClassExplorerPage (browse classes). Vite proxies \texttt{/api} to the backend on port 8000.
+
+\subsection{Roboflow}
+
+Dataset hosting, versioning, and COCO export. The training script uses workspace \texttt{electronic-waste-detection}, project \texttt{e-waste-dataset-r0ojc}, version 44.
+
+\subsection{Docker}
+
+Backend and frontend are containerised. No Triton service. The backend mounts \texttt{ewaste\_model} and \texttt{class\_labels.json} as read-only volumes.
+
+% =============================================================================
+% 4. Training Methods
+% =============================================================================
+\section{Training Methods}
+\label{sec:training}
+
+\subsection{Overview}
+
+The detection model is based on \textbf{EfficientDet-D0} (compound coefficient 0). Two training workflows are supported:
+
+\begin{enumerate}
+    \item \textbf{Cloud (Google Colab)}: Use a Colab notebook to download the dataset from Roboflow, run \texttt{train.py} from Yet-Another-EfficientDet-Pytorch (e.g., \texttt{-c 5 -p ewaste}), then export to ONNX. See \texttt{training/How\_To\_Train.md}.
+    \item \textbf{Local (Windows)}: Use \texttt{train\_local.py}, which downloads the EfficientDet repo as a ZIP (no git required), pulls the e-waste dataset from Roboflow, generates \texttt{projects/ewaste.yml}, and runs training with optional head-only fine-tuning to reduce VRAM.
+\end{enumerate}
+
+\subsection{Local Training Pipeline (\texttt{train\_local.py})}
+
+The script performs six steps:
+
+\begin{enumerate}
+    \item \textbf{Download EfficientDet repo}: Fetches the GitHub ZIP of Yet-Another-EfficientDet-Pytorch and extracts it to \texttt{training/Yet-Another-EfficientDet-Pytorch}.
+    \item \textbf{Download dataset}: Uses Roboflow API to download the E-Waste Dataset (COCO format) to `ewaste\_model/dataset`. Uses a short path (\texttt{C:/rf\_ewaste}) on Windows to avoid the 260-character path limit.
+    \item \textbf{Read class names}: Parses \texttt{\_annotations.coco.json} to get the list of category names.
+    \item \textbf{Write config}: Generates \texttt{projects/ewaste.yml} with \texttt{obj\_list}, \texttt{num\_classes}, \texttt{train\_set}, \texttt{val\_set}.
+    \item \textbf{Download pretrained weights}: Fetches EfficientDet-D0 COCO pretrained weights (~15 MB) to \texttt{ewaste\_model/checkpoints/efficientdet-d0.pth}.
+    \item \textbf{Prepare dataset}: Creates junctions or copies so \texttt{datasets/ewaste/train}, \texttt{datasets/ewaste/valid}, and \texttt{annotations/instances\_*.json} match the expected layout.
+    \item \textbf{Run training}: Runs \texttt{train.py -c 0 -p ewaste} with optional \texttt{--head\_only} to freeze the backbone.
+\end{enumerate}
+
+\subsection{Key Training Parameters}
+
+\begin{itemize}
+    \item \textbf{Compound coefficient}: 0 (D0) for local/low-VRAM.
+    \item \textbf{Batch size}: Default 2 (4GB VRAM); 4+ with 6GB+ VRAM.
+    \item \textbf{Learning rate}: \texttt{1e-3} (local).
+    \item \textbf{Head-only}: When \texttt{head\_only=True}, the backbone is frozen; only BiFPN and detection head are trained, reducing VRAM and training time.
+    \item \textbf{Pretrained weights}: EfficientDet-D0 COCO pretrained weights are used for initialisation.
+\end{itemize}
+
+\subsection{Post-Training: Optional ONNX Export}
+
+After training, \texttt{export\_onnx.py} loads the checkpoint, builds the same backbone architecture, and exports to ONNX with dynamic batch dimension. ONNX export is optional and not required by the current Docker runtime, which uses direct PyTorch checkpoint inference.
+
+% =============================================================================
+% 5. Dataset
+% =============================================================================
+\section{Dataset}
+\label{sec:dataset}
+
+\subsection{Source and Format}
+
+The dataset is obtained from \textbf{Roboflow}:
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Workspace}: \texttt{electronic-waste-detection}
+    \item \textbf{Project}: \texttt{e-waste-dataset-r0ojc}
+    \item \textbf{Version}: 44
+    \item \textbf{Format}: COCO (JSON annotations with \texttt{categories}, \texttt{images}, \texttt{annotations})
+    \item \textbf{Splits}: Train, validation (\texttt{valid}), and optionally test
+\end{itemize}
+
+\subsection{Class Taxonomy}
+
+The project uses \textbf{78 e-waste classes}, aligned with \texttt{class\_labels.json}. Each class has:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{name}: e.g., \texttt{Electronic-Waste}, \texttt{Bar-Phone}, \texttt{Battery}
+    \item \texttt{hazardous}: boolean
+    \item \texttt{recycling\_bin}: \texttt{electronics}, \texttt{hazardous}, \texttt{metals}, \texttt{displays}
+    \item \texttt{description}: short text for recycling guidance
+\end{itemize}
+
+\subsection{Example Hazardous Classes}
+
+Battery, CRT-Monitor, CRT-TV, PCB, Smoke-Detector, Compact-Fluorescent-Lamps, Neon-Sign, Straight-Tube-Fluorescent-Lamp, Air-Conditioner, Boiler, Cooled-Dispenser, Cooling-Display, Dehumidifier, Desktop-PC, Drone, Electric-Bicycle, Flashlight, Flat-Panel-Monitor, Flat-Panel-TV, Freezer, HDD, Laptop, Microwave, Photovoltaic-Panel, Printer, Projector, Refrigerator, Rotary-Mower, SSD, Server, Smart-Watch, Smartphone, Soldering-Iron, Street-Lamp, Tablet, Electronic-Waste.
+
+\subsection{Data Layout for Training}
+
+The EfficientDet training pipeline expects:
+
+\begin{lstlisting}[language=bash, caption={Expected dataset layout.}]
+datasets/ewaste/
+  train/           # images
+  valid/           # images (or val/)
+  annotations/
+    instances_train.json
+    instances_valid.json
+\end{lstlisting}
+
+The local training script creates this layout (via junctions/symlinks or copies) from the Roboflow download and writes \texttt{projects/ewaste.yml} with \texttt{obj\_list} and \texttt{num\_classes} derived from the COCO categories.
+
+% =============================================================================
+% 6. Model
+% =============================================================================
+\section{Model}
+\label{sec:model}
+
+\subsection{Architecture}
+
+The project uses \textbf{EfficientDet}, a family of object detectors that combine:
+
+\begin{itemize}[noitemsep]
+    \item An \textbf{EfficientNet} backbone for feature extraction.
+    \item A \textbf{BiFPN} (Bidirectional Feature Pyramid Network) for multi-scale features.
+    \item A \textbf{detection head} that outputs class scores and box regression for a set of anchors.
+\end{itemize}
+
+The \textbf{compound coefficient} (0, 1, \ldots, 7) controls input resolution, backbone depth, and BiFPN/head width. In this project, \textbf{D0} (compound coefficient 0, input size 512$\times$512) is used for all inference to balance speed and accuracy.
+
+\subsection{Input and Output}
+
+\begin{itemize}
+    \item \textbf{Input}: RGB image, resized with aspect-preserving padding to \texttt{MODEL\_INPUT\_SIZE} (512), normalised with ImageNet mean \texttt{[0.485, 0.456, 0.406]} and std \texttt{[0.229, 0.224, 0.225]}.
+    \item \textbf{Output}: Raw tensors for \texttt{regression} (box deltas), \texttt{classification} (logits), and \texttt{anchors}. Post-processing (sigmoid, decode boxes, NMS, scale to original image) is done in the \textbf{SafetyEngine}.
+\end{itemize}
+
+\subsection{Checkpoint Resolution}
+
+The backend auto-resolves the checkpoint path:
+
+\begin{enumerate}
+    \item \texttt{ewaste\_model/checkpoints/ewaste/efficientdet-d0\_*.pth} (latest by modification time, size $>$ 1 MB)
+    \item Fallback: \texttt{ewaste\_model/checkpoints/efficientdet-d0.pth} (COCO pretrained)
+\end{enumerate}
+
+\subsection{Why EfficientDet?}
+
+EfficientDet offers a good trade-off between accuracy and efficiency, is well-supported in PyTorch (Yet-Another-EfficientDet-Pytorch), and exports cleanly to ONNX for optional deployment. The 78-class head is trained from a COCO-pretrained backbone to adapt to e-waste categories.
+
+% =============================================================================
+% 7. Code Explanation (Important Parts)
+% =============================================================================
+\section{Code Explanation}
+\label{sec:code}
+
+\subsection{Detection API and Tracker (\texttt{backend/main.py})}
+
+The \texttt{/detect} endpoint accepts an uploaded image, validates type and size, runs inference in a thread pool, and passes raw outputs to the SafetyEngine. Detections are enriched with recycling info and pushed to a global \texttt{EWasteTracker} for statistics.
+
+\begin{lstlisting}[language=Python, caption={Core detection flow (from main.py).}]
+@app.post("/detect")
+async def detect_ewaste(file: UploadFile = File(...), request: Request = None):
+    contents = await file.read()
+    _validate_image(contents, file.content_type)
+    raw_output = await run_in_threadpool(inference_svc.infer, contents)
+    boxes, classes, is_hazardous = SafetyEngine.analyze(raw_output)
+    # ... enrich with recycling info, update tracker ...
+    return {"detections": enhanced_detections, "is_hazardous": is_hazardous,
+            "hazard_count": hazard_count, "processing_time_ms": round(latency, 2)}
+\end{lstlisting}
+
+File validation: \texttt{\_validate\_image} checks MIME type (JPEG, PNG, WebP) and magic bytes to reject non-image files.
+
+\subsection{Inference Service (\texttt{backend/services/onnx\_inference.py})}
+
+The \texttt{PyTorchInferenceService} loads the EfficientDet backbone and checkpoint, and implements:
+
+\begin{lstlisting}[language=Python, caption={Model loading (PyTorchInferenceService).}]
+def load_model(self):
+    self.device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = EfficientDetBackbone(
+        num_classes=len(settings.CLASSES),
+        compound_coef=0,
+        ratios=[(1.0, 1.0), (1.4, 0.7), (0.7, 1.4)],
+        scales=[2**0, 2**(1.0/3.0), 2**(2.0/3.0)],
+    )
+    state = torch.load(str(ckpt_path), map_location=self.device)
+    if "model" in state:
+        state = state["model"]
+    model.load_state_dict(state, strict=False)
+    model.to(self.device).eval()
+\end{lstlisting}
+
+Preprocessing: decode image with OpenCV, resize with aspect-preserving padding to 512$\times$512, normalise with ImageNet mean/std. Inference returns \texttt{regression}, \texttt{classification}, \texttt{anchors}, and metadata (\texttt{\_meta}, \texttt{\_input\_shape}) for post-processing.
+
+\subsection{Safety Engine and Post-Processing (\texttt{backend/services/safety\_engine.py})}
+
+\texttt{SafetyEngine.analyze()} takes the raw model output and:
+
+\begin{enumerate}[noitemsep]
+    \item Identifies regression, classification, and anchor arrays (handles different key names).
+    \item Applies sigmoid to logits, decodes boxes from anchors + regression, clips to image size.
+    \item Filters by confidence threshold (\texttt{HAZARDOUS\_THRESHOLD}), runs NMS (IoU 0.5), keeps top-k detections (default 20).
+    \item Maps class IDs to names via \texttt{settings.CLASSES}, scales coordinates to original image size, and marks hazardous classes using \texttt{SafetyEngine.HAZARDOUS\_ITEMS}.
+\end{enumerate}
+
+\begin{lstlisting}[language=Python, caption={Hazardous items set (SafetyEngine).}]
+HAZARDOUS_ITEMS = {
+    "Battery", "CRT-Monitor", "CRT-TV", "PCB",
+    "Smoke-Detector", "Compact-Fluorescent-Lamps", "Neon-Sign",
+    "Straight-Tube-Fluorescent-Lamp", "Air-Conditioner", "Boiler",
+    "Cooled-Dispenser", "Cooling-Display", "Dehumidifier", "Desktop-PC",
+    "Drone", "Electric-Bicycle", "Flashlight", "Flat-Panel-Monitor",
+    "Flat-Panel-TV", "Freezer", "HDD", "Laptop", "Microwave",
+    "Photovoltaic-Panel", "Printer", "Projector", "Refrigerator",
+    "Rotary-Mower", "SSD", "Server", "Smart-Watch", "Smartphone",
+    "Soldering-Iron", "Street-Lamp", "Tablet", "Electronic-Waste",
+}
+\end{lstlisting}
+
+\subsection{Local Training Pipeline (\texttt{training/train\_local.py})}
+
+The script orchestrates: (1) downloading the EfficientDet repo as a ZIP, (2) downloading the Roboflow dataset to a short path (to avoid Windows MAX\_PATH), (3) reading class names from COCO JSON, (4) writing \texttt{ewaste.yml}, (5) downloading pretrained D0 weights, (6) preparing dataset layout and running \texttt{train.py}. Optionally it can call \texttt{export\_onnx.py} after training.
+
+\subsection{Export to ONNX (\texttt{training/export\_onnx.py})}
+
+The export script builds \texttt{EfficientDetBackbone} with the correct \texttt{num\_classes} and \texttt{compound\_coef}, loads the checkpoint (including \texttt{state["model"]} if saved as a dict), and runs \texttt{torch.onnx.export} with dynamic batch axis and constant folding. This artifact is optional and primarily for interoperability experiments.
+
+\subsection{Configuration (\texttt{backend/core/config.py})}
+
+Settings (model name, input size, mean/std, hazardous threshold, list of hazardous classes, checkpoint path, CORS origins, rate limits) are loaded via \texttt{pydantic-settings}. Class names and IDs are read from \texttt{class\_labels.json} so the backend and safety engine stay in sync with the 78-class taxonomy.
+
+\subsection{Test Pipeline (\texttt{test\_pipeline.py})}
+
+A minimal script to verify inference without the full app:
+
+\begin{lstlisting}[language=Python, caption={Test pipeline (simplified).}]
+inference_svc.load_model()
+with open(img_path, 'rb') as f:
+    img_bytes = f.read()
+raw = inference_svc.infer(img_bytes)
+boxes, classes, is_haz = SafetyEngine.analyze(raw)
+print(f'Detections: {len(boxes)}', f'Classes: {classes}', f'Hazardous: {is_haz}')
+\end{lstlisting}
+
+Requires a checkpoint and optional test images in \texttt{ewaste\_model/dataset/test/}.
+
+% =============================================================================
+% 8. Project Structure
+% =============================================================================
+\section{Project Structure}
+\label{sec:structure}
+
+A high-level view of the repository is given below. Omitted are third-party submodules (e.g.\ \texttt{Yet-Another-EfficientDet-Pytorch}) and generated artifacts.
+
+\begin{lstlisting}[language=bash, caption={Project directory layout.}]
+untrashify-main/
+|-- backend/
+|   |-- core/
+|   |   |-- config.py       # Settings, class labels, checkpoint path
+|   |   |-- logger.py       # Structured logging
+|   |-- main.py             # FastAPI app, /detect, /stats, /health, /logs
+|   |-- middleware/
+|   |   |-- observability.py
+|   |-- services/
+|   |   |-- onnx_inference.py  # PyTorch inference (PyTorchInferenceService)
+|   |   |-- safety_engine.py   # Post-process, NMS, hazardous flags
+|   |-- requirements.txt
+|   |-- Dockerfile
+|-- frontend/
+|   |-- src/
+|   |   |-- api/
+|   |   |   |-- api.ts        # fetchDetections, fetchStats, fetchHealth
+|   |   |-- components/       # layout, homepage, analytics, classes
+|   |   |-- pages/            # HomePage, AnalyticsPage, ClassExplorerPage
+|   |   |-- hooks/            # useStats, useHealth, useLogs, useDispatch
+|   |   |-- data/             # types, ewaste-classes
+|   |   |-- App.tsx
+|   |   |-- main.tsx
+|   |-- Dockerfile
+|   |-- vite.config.ts
+|-- training/
+|   |-- train_local.py       # One-stop local training
+|   |-- export_onnx.py       # Checkpoint -> ONNX
+|   |-- How_To_Train.md      # Colab instructions
+|   |-- projects/
+|   |   |-- ewaste.yml       # Generated EfficientDet project config
+|   |-- Yet-Another-EfficientDet-Pytorch/  # Extracted repo
+|-- class_labels.json        # 78 classes: name, hazardous, recycling_bin
+|-- docker-compose.yml       # backend + frontend (no Triton)
+|-- test_pipeline.py         # Quick inference test
+|-- ewaste_model/            # checkpoints, dataset (git-ignored)
+|-- docs/
+|   |-- project_documentation.tex  # This document
+\end{lstlisting}
+
+\subsection{Key Entry Points}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Backend}: \texttt{cd backend} then \texttt{uvicorn main:app --reload --host 0.0.0.0 --port 8000}.
+    \item \textbf{Frontend}: \texttt{cd frontend} then \texttt{npm run dev}; open \texttt{http://localhost:5173}. Vite proxies \texttt{/api} to the backend.
+    \item \textbf{Training}: \texttt{python training/train\_local.py} (optionally \texttt{--download-only}, \texttt{--skip-export}, \texttt{--epochs 5}, \texttt{--batch-size 2}).
+    \item \textbf{Test}: \texttt{python test\_pipeline.py} (requires checkpoint and optional test images in \texttt{ewaste\_model/dataset/test/}).
+    \item \textbf{Docker}: \texttt{docker-compose up --build}; frontend at \texttt{http://localhost}, backend at \texttt{http://localhost:8000}.
+\end{itemize}
+
+% =============================================================================
+% References
+% =============================================================================
+\section*{References}
+\addcontentsline{toc}{section}{References}
+
+\begin{enumerate}[label={[\arabic*]}]
+    \item EfficientDet: Scalable and Efficient Object Detection. Mingxing Tan, Ruoming Pang, Quoc V. Le. CVPR 2020.
+    \item Yet-Another-EfficientDet-Pytorch: \url{https://github.com/zylo117/Yet-Another-EfficientDet-Pytorch}
+    \item Roboflow: \url{https://roboflow.com}
+    \item FastAPI: \url{https://fastapi.tiangolo.com}
+    \item React: \url{https://react.dev}
+\end{enumerate}
+
+\end{document}

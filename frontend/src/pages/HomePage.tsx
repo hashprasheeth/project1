@@ -19,6 +19,7 @@ export default function HomePage() {
     isRunning,
     detections,
     detectionLog,
+    framePreview,
     hasHazard,
     latency,
     frameNumber,
@@ -29,7 +30,7 @@ export default function HomePage() {
     reset,
     startWebcam,
     loadVideo,
-  } = useDigitalTwin(videoRef, 1500);
+  } = useDigitalTwin(videoRef, 700);
   const logs = useLogs(3000);
   const dispatchItems = useDispatchQueue(5000);
 
@@ -44,7 +45,8 @@ export default function HomePage() {
       {/* CENTER CONTENT */}
       <section className="flex-1 flex flex-col min-w-0 bg-[#06090c]">
         {/* Controls bar */}
-        <div className="h-10 shrink-0 flex items-center gap-2 px-4 border-b border-border-dark bg-panel-dark">
+        <div className="shrink-0 border-b border-border-dark bg-panel-dark">
+          <div className="h-10 flex items-center gap-2 px-4">
           <Sheet>
             <SheetTrigger asChild>
               <button className="xl:hidden text-text-dim hover:text-white mr-2">
@@ -92,12 +94,14 @@ export default function HomePage() {
               <DispatchQueue items={dispatchItems} />
             </SheetContent>
           </Sheet>
+          </div>
         </div>
 
         {/* Video feed */}
         <div className="h-[60%] border-b border-border-dark flex flex-col min-h-0">
           <ConveyorFeed
             detections={detections}
+            framePreview={framePreview}
             hasHazard={hasHazard}
             videoRef={videoRef}
             videoSource={videoSource}

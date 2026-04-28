@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { fetchDetections } from '@/api/api';
-import type { Detection } from '@/data/types';
+import { fetchDetections, resetTracking } from '@/api/api';
+import type { CapturedFramePreview, Detection } from '@/data/types';
 
 export type VideoSource = 'none' | 'webcam' | 'upload';
 
@@ -8,6 +8,7 @@ interface DigitalTwinState {
   readonly isRunning: boolean;
   readonly detections: Detection[];
   readonly detectionLog: Detection[];
+  readonly framePreview: CapturedFramePreview | null;
   readonly latency: number;
   readonly hasHazard: boolean;
   readonly frameNumber: number;
@@ -15,30 +16,41 @@ interface DigitalTwinState {
   readonly videoSource: VideoSource;
 }
 
-function captureFrame(video: HTMLVideoElement): Promise<Blob | null> {
+function captureFrame(
+  video: HTMLVideoElement,
+): Promise<{ blob: Blob | null; preview: CapturedFramePreview | null }> {
   return new Promise((resolve) => {
     if (video.readyState < 2 || video.videoWidth === 0) {
-      resolve(null);
+      resolve({ blob: null, preview: null });
       return;
     }
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
-    if (!ctx) { resolve(null); return; }
+    if (!ctx) {
+      resolve({ blob: null, preview: null });
+      return;
+    }
     ctx.drawImage(video, 0, 0);
-    canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.85);
+    const preview: CapturedFramePreview = {
+      imageUrl: canvas.toDataURL('image/jpeg', 0.9),
+      width: canvas.width,
+      height: canvas.height,
+    };
+    canvas.toBlob((blob) => resolve({ blob, preview }), 'image/jpeg', 0.85);
   });
 }
 
 export function useDigitalTwin(
   videoRef: React.RefObject<HTMLVideoElement | null>,
-  intervalMs = 1500,
+  intervalMs = 500,
 ) {
   const [state, setState] = useState<DigitalTwinState>({
     isRunning: false,
     detections: [],
     detectionLog: [],
+    framePreview: null,
     latency: 0,
     hasHazard: false,
     frameNumber: 0,
@@ -46,13 +58,14 @@ export function useDigitalTwin(
     videoSource: 'none',
   });
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const loopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const webcamStreamRef = useRef<MediaStream | null>(null);
   const runningRef = useRef(false);
+  const inFlightRef = useRef(false);
   runningRef.current = state.isRunning;
 
   const performInference = useCallback(async () => {
-    if (!runningRef.current) return;
+    if (!runningRef.current || inFlightRef.current) return;
 
     const video = videoRef.current;
     if (!video || video.readyState < 2 || video.videoWidth === 0) {
@@ -60,8 +73,9 @@ export function useDigitalTwin(
     }
 
     const t0 = performance.now();
+    inFlightRef.current = true;
     try {
-      const blob = await captureFrame(video);
+      const { blob, preview } = await captureFrame(video);
       if (!blob) return;
 
       const results = await fetchDetections(blob);
@@ -73,6 +87,7 @@ export function useDigitalTwin(
           results.length > 0
             ? [...results, ...prev.detectionLog].slice(0, 50)
             : prev.detectionLog,
+        framePreview: preview,
         latency,
         hasHazard: results.some((d) => d.hazardous),
         frameNumber: prev.frameNumber + 1,
@@ -82,18 +97,42 @@ export function useDigitalTwin(
       setState((prev) => ({
         ...prev,
         detections: [],
+        framePreview: null,
         error: err instanceof Error ? err.message : 'Inference failed',
       }));
+    } finally {
+      inFlightRef.current = false;
     }
   }, [videoRef]);
 
   useEffect(() => {
+    const clearLoop = () => {
+      if (loopTimerRef.current) {
+        clearTimeout(loopTimerRef.current);
+        loopTimerRef.current = null;
+      }
+    };
+
+    const tick = async () => {
+      if (!runningRef.current) return;
+      const startedAt = performance.now();
+      await performInference();
+      if (!runningRef.current) return;
+      const elapsed = performance.now() - startedAt;
+      // Keep a modest floor so the live feed stays responsive without
+      // hammering the backend into rate limiting.
+      const nextDelay = Math.max(250, intervalMs - elapsed);
+      loopTimerRef.current = setTimeout(tick, nextDelay);
+    };
+
     if (state.isRunning) {
-      performInference();
-      intervalRef.current = setInterval(performInference, intervalMs);
+      clearLoop();
+      void tick();
+    } else {
+      clearLoop();
     }
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      clearLoop();
     };
   }, [state.isRunning, intervalMs, performInference]);
 
@@ -143,10 +182,11 @@ export function useDigitalTwin(
   }, []);
 
   const stop = useCallback(() => {
-    setState((s) => ({ ...s, isRunning: false, detections: [] }));
+    setState((s) => ({ ...s, isRunning: false, detections: [], framePreview: null }));
   }, []);
 
-  const reset = useCallback(() => {
+  const reset = useCallback(async () => {
+    await resetTracking();
     if (webcamStreamRef.current) {
       webcamStreamRef.current.getTracks().forEach((t) => t.stop());
       webcamStreamRef.current = null;
@@ -159,6 +199,7 @@ export function useDigitalTwin(
       isRunning: false,
       detections: [],
       detectionLog: [],
+      framePreview: null,
       latency: 0,
       hasHazard: false,
       frameNumber: 0,
