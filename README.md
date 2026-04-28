@@ -1,88 +1,92 @@
-# E-Waste Detection System (Project Antigravity)
+# Untrashify — E-Waste Detection System
 
-**Principal AI Solutions Architect**: E-Waste Detection Team
+AI-powered platform for detecting and classifying electronic waste in images. Uses **EfficientDet-D0** trained on the **E-Waste Dataset (78 classes)** from Roboflow, with **PyTorch inference** and a FastAPI backend.
 
 ## Overview
 
-E-Waste Detection System is a high-performance AI-powered platform for detecting and classifying electronic waste. It uses **EfficientDet-D5** trained on the **UNU-KEYS E-Waste Dataset (77 classes)** with a hybrid cloud training / local inference architecture.
-
-### Key Features
-
-- **77 E-Waste Classes**: Detects batteries, circuit boards, displays, processors, and 73 other e-waste categories
-- **Hybrid Architecture**: Cloud training on Google Colab + Roboflow, local inference via NVIDIA Triton
-- **Hazardous Material Detection**: Automatically flags dangerous items (lithium batteries, CRT monitors, etc.)
-- **High Performance**: Sub-50ms inference latency with gRPC communication to Triton Server
-- **Safety Interlock**: Real-time hazardous waste detection (>40% confidence) triggers safety protocols
-- **Production Ready**: FastAPI backend with structured logging, health checks, and retry logic
+- **78 E-Waste Classes**: Electronic-Waste, Battery, CRT-Monitor, Laptop, Smartphone, PCB, and 72 other categories
+- **PyTorch Inference**: Direct model loading from `.pth` checkpoint (no Triton required)
+- **Hazardous Material Detection**: Flags dangerous items (batteries, CRTs, PCBs, etc.) above configurable confidence threshold
+- **Safety Interlock**: Real-time hazardous detection triggers alerts in the dashboard
+- **Production Ready**: FastAPI backend with rate limiting, file validation, security headers, and structured logging
 
 ## Architecture
 
-```mermaid
-graph LR
-    A[Google Colab] -->|Train Model| B[Roboflow Dataset]
-    A -->|Export ONNX| C[Google Drive]
-    C -->|Download| D[Local Triton Server]
-    E[React Frontend] -->|Upload Image| F[FastAPI Backend]
-    F -->|gRPC Inference| D
-    D -->|77-Class Detection| F
-    F -->|Safety Analysis| E
 ```
+┌─────────────────────────────────────────────────────────────┐
+│  Browser  →  http://localhost:5173 (dev) or :80 (Docker)     │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+              ┌────────────▼────────────┐
+              │   React Frontend        │
+              │   Vite + TailwindCSS    │
+              │   /api/* → proxy        │
+              └────────────┬────────────┘
+                           │
+              ┌────────────▼────────────┐
+              │   FastAPI Backend       │
+              │   PyTorch EfficientDet  │
+              │   SafetyEngine (NMS)    │
+              └─────────────────────────┘
+```
+
+- **Frontend**: React SPA with live webcam/video detection, analytics, and class explorer
+- **Backend**: FastAPI loads EfficientDet-D0 checkpoint, runs inference, post-processes with SafetyEngine (anchor decode, NMS, hazardous flagging)
 
 ## Dataset & Training
 
-- **Dataset**: UNU-KEYS E-Waste Dataset (77 classes, COCO format)
-- **Source**: Roboflow
-- **Model**: EfficientDet-D5 (compound coefficient: 5)
-- **Training Platform**: Google Colab (GPU: T4/A100)
-- **Training Time**: 4-8 hours
-- **Output**: ONNX model for Triton deployment
+- **Dataset**: E-Waste Dataset (COCO format) from Roboflow  
+  - Workspace: `electronic-waste-detection`  
+  - Project: `e-waste-dataset-r0ojc`  
+  - Version: 44
+- **Model**: EfficientDet-D0 (compound coefficient 0, input size 512×512)
+- **Training**: Local via `train_local.py` (no git required; downloads repo as ZIP)
+- **Output**: `.pth` checkpoint in `ewaste_model/checkpoints/ewaste/`
 
-See [`training/How_To_Train.md`](training/How_To_Train.md) for detailed training instructions.
+See [`training/How_To_Train.md`](training/How_To_Train.md) for Colab training. For local training:
 
-## Setup Guide
+```bash
+python training/train_local.py --epochs 5 --batch-size 2
+```
+
+## Run The App (Current State)
 
 ### Prerequisites
 
-- **Hardware**: GPU recommended (NVIDIA RTX 4060 or better)
-- **Software**: Docker & Docker Compose, Python 3.10+, Node.js 18+
-- **Accounts**: Roboflow account with API key (for training)
+- **Hardware**: GPU recommended (CPU works for inference, but slower)
+- **Software**: Python 3.10+, Node.js 18+, npm, Docker (optional)
+- **Model files**: Keep weights under `ewaste_model/checkpoints/` (latest local checkpoint is auto-selected)
 
-### 1. Clone & Configure
+### 1. Clone Repository
 
 ```bash
 git clone <repository-url>
 cd untrashify-main
-cp .env.example .env
 ```
 
-### 2. Get Trained Model
+### 2. Backend Setup (FastAPI + Inference)
 
-**Option A: Use Pre-trained Model** (if available)
-```bash
-# Place model in Triton repository
-cp path/to/model.onnx triton_model_repo/efficientdet_d5/1/model.onnx
-```
-
-**Option B: Train Your Own Model**
-1. Follow [`training/How_To_Train.md`](training/How_To_Train.md) to train on Google Colab
-2. Download trained model from Google Drive
-3. Transfer using: `python training/transfer_model.py ~/Downloads/model.onnx`
-
-### 3. Start Services
+Install Python dependencies from repo root:
 
 ```bash
-# Start Triton Inference Server + Backend
-docker-compose up --build
+pip install -r backend/requirements.txt
 ```
 
-Verify Triton loaded the model:
+Start backend from repo root (frontend dev proxy expects `8002`):
+
 ```bash
-# Check logs for:
-# "Successfully loaded 'efficientdet_d5'"
-docker logs untrashify-triton
+uvicorn backend.main:app --reload --host 0.0.0.0 --port 8002
 ```
 
-### 4. Run Frontend
+Quick health check:
+
+```bash
+curl http://localhost:8002/health
+```
+
+### 3. Frontend Setup (Vite + React)
+
+In a second terminal:
 
 ```bash
 cd frontend
@@ -90,92 +94,144 @@ npm install
 npm run dev
 ```
 
-Access the application at `http://localhost:5173`
+Open `http://localhost:5173`.
 
-## E-Waste Classes (77 Total)
+In dev mode, frontend requests `/api/*` are proxied to `http://localhost:8002`.
 
-The system detects 77 categories of electronic waste:
+### 4. Verify End-to-End Detection
 
-**Hazardous Items** (35 classes):
-- Batteries: `battery`, `battery_lithium`, `battery_alkaline`, `battery_lead_acid`
-- Displays: `crt_monitor`, `tv_crt`, `display_lcd`, `display_oled`
-- Circuit Boards: `circuit_board`, `pcb_bare`, `motherboard`, `graphics_card`
-- Storage: `hard_drive`, `ssd`, `RAM`, `ROM`, `flash_memory`
-- Devices: `laptop`, `desktop_computer`, `phone_mobile`, `tablet`, `server`
-- And more...
+Call the detect endpoint directly:
 
-**Non-Hazardous Items** (42 classes):
-- Components: `resistor`, `capacitor`, `led`, `switch`, `button`
-- Peripherals: `keyboard`, `mouse`, `speaker`, `headphone`, `webcam`
-- Cables: `cable`, `wire`, `connector`
-- And more...
+```bash
+curl -X POST http://localhost:8002/detect -F "file=@ewaste_image.jpg"
+```
 
-See [`docs/EWASTE_CLASSES.md`](docs/EWASTE_CLASSES.md) for the complete list with recycling guidelines.
+### 5. Model Notes (If Detection Is Empty)
+
+**Option A: Train Locally**
+
+```bash
+python training/train_local.py --epochs 5 --batch-size 2
+```
+
+Checkpoints are saved to `ewaste_model/checkpoints/ewaste/efficientdet-d0_*.pth`.
+
+**Option B: Use Pretrained Weights (Demo)**
+
+The config falls back to `ewaste_model/checkpoints/efficientdet-d0.pth` (COCO pretrained) if no trained checkpoint exists. The app still runs, but class accuracy will be lower until you train/fine-tune.
+
+### 6. Docker (Optional)
+
+```bash
+docker-compose up --build
+```
+
+- Frontend: **http://localhost** (port 80)
+- Backend: **http://localhost:8000**
+
+See [`DOCKER_GUIDE.md`](DOCKER_GUIDE.md) for details.
+
+## E-Waste Classes (78 Total)
+
+Classes are defined in `class_labels.json`. Examples:
+
+**Hazardous (35 classes):** Battery, CRT-Monitor, CRT-TV, PCB, Smoke-Detector, Compact-Fluorescent-Lamps, Air-Conditioner, Boiler, Laptop, Smartphone, Tablet, HDD, SSD, Refrigerator, Photovoltaic-Panel, etc.
+
+**Non-Hazardous (43 classes):** Bar-Phone, Calculator, Camera, Computer-Keyboard, Computer-Mouse, Router, Speaker, USB-Flash-Drive, Ceiling-Fan, Coffee-Machine, etc.
+
+Each class has `name`, `hazardous`, `recycling_bin` (electronics, hazardous, metals, displays), and `description`.
 
 ## API Usage
 
 ### Detect E-Waste
 
 ```bash
-curl -X POST http://localhost:8000/detect \
-  -F "file=@ewaste_image.jpg"
+curl -X POST http://localhost:8000/detect -F "file=@ewaste_image.jpg"
 ```
 
 **Response:**
+
 ```json
 {
   "detections": [
     {
-      "class": "battery_lithium",
+      "label": "Battery",
       "confidence": 0.92,
-      "bbox": [120, 45, 200, 180],
-      "hazardous": true
+      "bbox": [120.5, 80.3, 250.1, 200.7],
+      "hazardous": true,
+      "recycling_bin": "hazardous",
+      "recycling_tip": "⚠️ HAZARDOUS: Dispose at specialized hazardous waste facility only"
     }
   ],
   "is_hazardous": true,
-  "processing_time_ms": 34
+  "hazard_count": 1,
+  "total_items": 1,
+  "processing_time_ms": 145.23,
+  "frame_number": 1
 }
 ```
 
-### Health Check
+### Other Endpoints
 
-```bash
-curl http://localhost:8000/health
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Health check (model loaded status) |
+| `GET` | `/stats` | Aggregated detection statistics |
+| `GET` | `/logs` | Recent detection log entries |
+| `GET` | `/dispatch` | Simulated dispatch queue |
+| `POST` | `/track/reset` | Reset tracking statistics |
+| `GET` | `/recycling-info/{class_name}` | Recycling info for a class |
 
 ## Configuration
 
-Edit `.env` to customize:
+Environment variables (or `.env`):
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MODEL_NAME` | `efficientdet_d0` | Model identifier |
+| `HAZARDOUS_THRESHOLD` | `0.85` | Confidence threshold for detections |
+| `MAX_FILE_SIZE_MB` | `10` | Max upload size |
+| `ALLOWED_ORIGINS` | `["http://localhost:5173", ...]` | CORS origins |
+| `RATE_LIMIT_DETECT` | `60/minute` | Max detect requests per minute |
+| `MIN_DETECTION_AREA_RATIO` | `0.002` | Drops tiny noisy bounding boxes |
+
+Checkpoint path is auto-resolved: `ewaste_model/checkpoints/ewaste/efficientdet-d0_*.pth` (latest) or `ewaste_model/checkpoints/efficientdet-d0.pth` (fallback).
+
+## Quick Backend Test
+
+Smoke-test inference endpoint directly:
 
 ```bash
-# Model Settings
-MODEL_NAME=efficientdet_d5
-HAZARDOUS_THRESHOLD=0.40
-
-# Hazardous Classes (triggers safety alerts)
-HAZARDOUS_CLASSES=["battery_lithium","crt_monitor","circuit_board"]
-
-# Triton Server
-TRITON_GRPC_URL=triton:8001
+curl -X POST http://localhost:8000/detect -F "file=@ewaste_image.jpg"
 ```
-
-## Security & Performance
-
-- **Input Validation**: Max file size 10MB
-- **Async Inference**: Non-blocking threadpool execution
-- **Request Tracing**: Unique `X-Request-ID` for debugging
-- **Health Monitoring**: Deep Triton server health checks
-- **Structured Logging**: JSON logs for observability
 
 ## Technology Stack
 
-- **Backend**: FastAPI, Python 3.10+
-- **Inference**: NVIDIA Triton Inference Server (ONNX Runtime)
-- **Frontend**: React, Vite, TailwindCSS
-- **Model**: EfficientDet-D5 (77 classes)
-- **Training**: Google Colab, PyTorch, Roboflow
-- **Deployment**: Docker, Docker Compose
+| Component | Technology |
+|-----------|------------|
+| Backend | FastAPI, Python 3.10+ |
+| Inference | PyTorch (EfficientDetBackbone), OpenCV |
+| Frontend | React, Vite, TypeScript, TailwindCSS |
+| Model | EfficientDet-D0 (78 classes) |
+| Training | PyTorch, Yet-Another-EfficientDet-Pytorch, Roboflow |
+| Deployment | Docker, Docker Compose |
+
+## Project Structure
+
+```
+untrashify-main/
+├── backend/           # FastAPI app
+│   ├── main.py        # Routes, EWasteTracker
+│   ├── core/          # config, logger
+│   ├── services/      # onnx_inference (PyTorch), safety_engine
+│   └── middleware/    # observability
+├── frontend/          # React SPA
+├── training/          # train_local.py, export_onnx.py
+├── class_labels.json  # 78 class definitions
+├── ewaste_model/      # checkpoints, dataset (git-ignored)
+└── docker-compose.yml
+```
 
 ## License
 
-Confidential - Project Antigravity E-Waste Detection System
+Confidential — Untrashify E-Waste Detection System
